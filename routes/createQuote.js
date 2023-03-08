@@ -5,12 +5,10 @@ var settings = require('../config/settings');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index');
+  res.render('createQuote');
 });
 
-router.get('/logout', function(req, res, next) {
-  // do something to end auth then redirect
-  res.redirect('/');
-});
+
+
 
 module.exports = router;

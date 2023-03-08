@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.6.3.js" integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM=" crossorigin="anonymous"></script>
+  <link href="stylesheets/style.css" rel="stylesheet">
+  <script src="javascripts/createQuoteScript.js"></script>
+  <title>Quotes & Budgets | Create Quote</title>
+</head>
+<body class="body">
+  <%- include('./partials/nav') %>
+  <form class="formStyle">
+    <div class="container">
+      
+      <div class="row">
+        <h1 class="">Create a Quote</h1><br>
+        <p>To create a new quote please fill in the details below.</p>
+        <label for="name">What would you like to name this quote?</label>
+        <input type="text" id="name" name="name"/>
+      </div>
+      <div class="row rowStyle">
+        <h3>Workers</h3>
+        <div class="col">
+          <div class="row row-cols-2">
+            <div class="col colMidStyle colTopStyle">
+              <label for="hours">How many hours do you think it will take this worker to complete the work?</label>
+            </div>
+            <div class="col colTopStyle">
+              <label for="hourlyRate">What is this workers hourly rate?</label>
+            </div>
+            <div class="col colMidStyle colBotStyle">
+              <input type="text" id="hours" name="hours"/>
+            </div>
+            <div class="col colBotStyle">
+              <input type="text" id="hourlyRate" name="hourlyRate"/>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-md btn-primary" id="addWorker" type="button">Add worker</button>
+        <br><br>
+        <div class="container pt-4">
+          <div class="table-responsive">
+              <table class="table table-bordered">
+                  <thead>
+                  <tr>
+                      <th class="text-center">Work Hours</th>
+                      <th class="text-center">Hourly Rate</th>
+                      <th class="text-center"></th>
+                  </tr>
+                  </thead>
+                  <tbody id="tWorkerBody">
+          
+                  </tbody>
+              </table>
+          </div>
+        </div>
+      </div>
+      <div class="row rowStyle">
+        <h3>Non-Human Resources</h3>
+        <div class="col">
+          <div class="row row-cols-2">
+            <div class="col colMidStyle colTopStyle">
+              <label for="resource">What resource do you need?</label>
+            </div>
+            <div class="col colTopStyle">
+              <label for="resourceCost">What is this resource going to cost?</label>
+            </div>
+            <div class="col colMidStyle colBotStyle">
+              <input type="text" id="resource" name="resource"/>
+            </div>
+            <div class="col colBotStyle">
+              <input type="text" id="resourceCost" name="resourceCost"/>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-md btn-primary" id="addResource" type="button">Add Resource</button>
+        <br><br>
+        <div class="container pt-4">
+          <div class="table-responsive">
+              <table class="table table-bordered">
+                  <thead>
+                  <tr>
+                      <th class="text-center">Resource</th>
+                      <th class="text-center">Cost</th>
+                      <th class="text-center"></th>
+                  </tr>
+                  </thead>
+                  <tbody id="tResBody">
+          
+                  </tbody>
+              </table>
+          </div>
+        </div>
+      </div>
+
+      <input type="submit" id="submit" class="btn btn-md btn-primary" value="Create Quote"><br><br>
+
+    </div>
+  </form>
+
+
+
+
+</body>
