@@ -11,20 +11,18 @@
 </head>
 <body class="body">
   <%- include('./partials/nav') %>
-  <div>
-    <h1 class="">Welcome to the Quotes and Bugdets Website</h1>
-    <p>To create a new quote or view your existing quotes please log in or register below.</p>
+  <div class="container formStyle">
+    <div class="row">
+      <h1 class="">Welcome to the Quotes and Bugdets Website</h1>
+      <p>To create a new quote or view your existing quotes please log in or register below.</p>
+    </div>
+
+    <div class="row">
+      <label for="quotes">To create a new quote please head to the Quotes page below</label><br>
+      <a role="button" href="quotes" id="quotes" class="btn btn-md btn-primary">View/Create Quotes</a>
+    </div>
+
   </div>
-
-  <div>
-    <label for="login">Please login to view and create your quote</label><br>
-    <a role="button" href="login" id="login" class="btn bodyBtn">Login/Register</a>
-  </div>
-
-
-  <script>
-    
-  </script>
 
 </body>
 </html>

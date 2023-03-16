@@ -17,18 +17,27 @@
       <div class="row">
         <h1 class="">Create a Quote</h1><br>
         <p>To create a new quote please fill in the details below.</p>
-        <label for="name">What would you like to name this quote?</label>
-        <input type="text" id="name" name="name"/>
+        <div>
+          <label for="quoteName">What would you like to name this quote?</label>
+          <input type="text" id="quoteName" name="quoteName"/>
+        </div>
+        
       </div>
       <div class="row rowStyle">
         <h3>Workers</h3>
         <div class="col">
-          <div class="row row-cols-2">
+          <div class="row row-cols-3">
+            <div class="col colMidStyle colTopStyle">
+              <label for="workerName">How would you like to name this worker?</label>
+            </div>
             <div class="col colMidStyle colTopStyle">
               <label for="hours">How many hours do you think it will take this worker to complete the work?</label>
             </div>
             <div class="col colTopStyle">
               <label for="hourlyRate">What is this workers hourly rate?</label>
+            </div>
+            <div class="col colMidStyle colBotStyle">
+              <input type="text" id="workerName" name="workerName"/>
             </div>
             <div class="col colMidStyle colBotStyle">
               <input type="text" id="hours" name="hours"/>
@@ -45,9 +54,10 @@
               <table class="table table-bordered">
                   <thead>
                   <tr>
-                      <th class="text-center">Work Hours</th>
-                      <th class="text-center">Hourly Rate</th>
-                      <th class="text-center"></th>
+                    <th class="text-center">Worker Name</th>
+                    <th class="text-center">Work Hours</th>
+                    <th class="text-center">Hourly Rate</th>
+                    <th class="text-center"></th>
                   </tr>
                   </thead>
                   <tbody id="tWorkerBody">
@@ -56,6 +66,8 @@
               </table>
           </div>
         </div>
+        <label for="workersCost">Total Workers Cost</label>
+        <label id="workersCost">0</label>
       </div>
       <div class="row rowStyle">
         <h3>Non-Human Resources</h3>
@@ -93,6 +105,8 @@
               </table>
           </div>
         </div>
+        <label for="resourcesCost">Total Resources Cost</label>
+        <label id="resourcesCost">0</label>
       </div>
 
       <input type="submit" id="submit" class="btn btn-md btn-primary" value="Create Quote"><br><br>
