@@ -1,15 +1,21 @@
-const { log } = require('util');
+import indexRouter from '../routes/index.js'
+import loginRouter from '../routes/login.js'
+import quotesRouter from '../routes/quotes.js'
+import createQRouter from '../routes/createQuote.js'
+import userRoutes from './user.routes.js'
+import authRoutes from './auth.routes.js'
 
-module.exports = function(app){
+const router = function(app){
     // Declaring and assigning routers
-    var indexRouter = require('../routes/index');
-    var loginRouter = require('../routes/login');
-    var quotesRouter = require('../routes/quotes');
-    var createQRouter = require('../routes/createQuote');
+
   
     // Redirecting path requests to routes
+    app.use('/', userRoutes);
+    app.use('/', authRoutes);
     app.use('/', indexRouter);
     app.use('/login', loginRouter);
     app.use('/quotes', quotesRouter);
     app.use('/createQuote', createQRouter);
   }
+
+  export default router; 

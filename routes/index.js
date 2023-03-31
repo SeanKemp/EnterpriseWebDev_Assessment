@@ -1,8 +1,7 @@
-var express = require('express');
-var router = express.Router();
-var database = require('../modules/database')
-var quoteCalculation = require('../modules/quoteCalculation');
-var settings = require('../config/settings');
+import express from 'express'
+const router = express.Router();
+import settings from '../config/settings.js'
+import quoteCalculation from '../modules/quoteCalculation.js'
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -22,4 +21,4 @@ router.get('/api/addWorker', function(req, res) {
 });
 
 
-module.exports = router;
+export default router;

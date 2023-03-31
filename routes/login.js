@@ -1,7 +1,7 @@
-var express = require('express');
-var router = express.Router();
-var database = require('../modules/database')
-var settings = require('../config/settings');
+import express from 'express'
+const router = express.Router();
+import database from '../modules/database.js'
+import settings from '../config/settings.js'
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -11,4 +11,4 @@ router.get('/', function(req, res, next) {
 
 
 
-module.exports = router;
+export default router;
