@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function Quotes() {
     return (
         <div class="container formStyle">
@@ -8,7 +10,8 @@ export default function Quotes() {
             </div>
             <div class="row">
                 <label for="login">To create your own Quote please click the button below:</label><br/>
-                <a role="button" href="createQuote" id="createQuote" class="btn btn-md btn-primary">Create Quote</a>
+                <Link class="btn btn-md btn-primary" to='/createQuote'>Create Quote</Link>
+                {/* <a role="button" href="createQuote" id="createQuote" class="btn btn-md btn-primary">Create Quote</a> */}
             </div>
         </div>
     );

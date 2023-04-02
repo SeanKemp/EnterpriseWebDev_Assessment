@@ -11,6 +11,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Quotes from './quotes';
 import Login from './login';
 import Logout from './logout';
+import CreateQuote from './createQuote';
 
 
 const router = createBrowserRouter([
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
       {
         path: "quotes",
         element: <Quotes />,
+      },
+      {
+        path: "createQuote",
+        element: <CreateQuote />,
       },
     ]
   },

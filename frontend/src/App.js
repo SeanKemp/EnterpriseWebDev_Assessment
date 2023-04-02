@@ -3,6 +3,7 @@ import React from 'react';
 import './App.css';
 import {useQuery} from 'react-query'
 import axios from 'axios'
+import { Link } from "react-router-dom";
 
 
 class Home extends React.Component {
@@ -17,16 +18,17 @@ class Home extends React.Component {
 
   render() {
     return (
-      <div class="background">
-        <div class="container formStyle">
-          <div class="row">
-            <h1 class="">Welcome to the Quotes and Bugdets Website</h1>
+      <div className="background">
+        <div className="container formStyle">
+          <div className="row">
+            <h1 className="">Welcome to the Quotes and Bugdets Website</h1>
             <p>To create a new quote or view your existing quotes please log in or register below.</p>
           </div>
 
-          <div class="row">
+          <div className="row">
             <label for="quotes">To create a new quote please head to the Quotes page below</label><br/>
-            <a role="button" href="quotes" id="quotes" class="btn btn-md btn-primary">View/Create Quotes</a>
+            <Link className="btn btn-md btn-primary" to='/quotes'>View/Create Quotes</Link>
+            {/* <a role="button" href="quotes" id="quotes" className="btn btn-md btn-primary">View/Create Quotes</a> */}
           </div>
 
         </div>

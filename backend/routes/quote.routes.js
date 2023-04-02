@@ -5,11 +5,21 @@ import quoteCalculation from '../modules/quoteCalculation.js'
 const router = express.Router()
 
 router.route('/api/quote/addWorker')
-  .get(function(req, res, next) {
-    var hours = req.query.hours;
-    var hourlyRate = req.query.hourlyRate;
-    //console.log("API GET")
-    res.send(""+quoteCalculation.calculateWorkerCost(hours, hourlyRate));
+  .post(function(req, res) {
+    try {
+      var hours = req.body.hours;
+      var hourlyRate = req.body.hourlyRate;
+      console.log(hours)
+      console.log("API addWorker POST")
+      res.json(quoteCalculation(hours, hourlyRate))
+    } catch (err) {
+        return res.status(400).json({
+          error: errorHandler.getErrorMessage(err)
+        })
+    }  
+    
+    //return res.json({workerCost: quoteCalculation(hours, hourlyRate)})
+    //res.send(""+quoteCalculation(hours, hourlyRate));
   })
 
   //authCtrl.requireSignin, authCtrl.hasAuthorization
