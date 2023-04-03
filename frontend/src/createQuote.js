@@ -1,5 +1,7 @@
-import React from 'react';
+import React from 'react'
 import axios from 'axios'
+import { useSelector } from 'react-redux'
+import { getAuthBool } from './reduxslice';
 
 class CreateQuote extends React.Component {
 
@@ -7,13 +9,14 @@ class CreateQuote extends React.Component {
         super(props);
         this.state = { workers: [], resources: [], quoteName: '',
             workerName: '', hours: '', hourlyRate: '', workersCost: '',
-            resource: '', resourceCost: '', resourcesCost: ''};
+            resource: '', resourceCost: '', resourcesCost: '', finalBudget: ''};
         this.handleChange = this.handleChange.bind(this);
         this.addWorker = this.addWorker.bind(this);
         this.addResource = this.addResource.bind(this);
         this.calculateWorker = this.calculateWorker.bind(this);
+        this.calculateFinalBudget = this.calculateFinalBudget.bind(this);
+        this.saveQuote = this.saveQuote.bind(this);
     }
-
 
 
     render() {
@@ -61,7 +64,7 @@ class CreateQuote extends React.Component {
                 <WorkerList items={this.state.workers}/>
               </div>
             </div>
-            <label htmlFor="workersCost">Total Workers Cost</label>
+            <label htmlFor="workersCost">Total Workers Cost (£)</label>
             <input id="workersCost" readOnly value={this.state.workersCost}></input>
           </div>
           <div className="row rowStyle">
@@ -89,12 +92,18 @@ class CreateQuote extends React.Component {
                 <ResourceList items={this.state.resources}/>
               </div>
             </div>
-            <label htmlFor="resourcesCost">Total Resources Cost</label>
+            <label htmlFor="resourcesCost">Total Resources Cost (£)</label>
             <input id="resourcesCost" readOnly value={this.state.resourcesCost}></input>
           </div>
-
-          <input type="submit" id="submit" className="btn btn-md btn-primary" value="Create Quote"/><br/><br/>
-
+          <div id="finalBudgetDiv" className="row rowStyle" hidden={(!this.state.finalBudget.length) ? 'hidden' : ''}>
+            <label htmlFor="finalBudget">Final Budget (£)</label>
+            <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
+          </div>
+          <input type="button" className="btn btn-md btn-primary" value="Calculate Final Budget" onClick={this.calculateFinalBudget}/><br/><br/>
+          {(sessionStorage.getItem('auth'))? 
+          <input id="button" className="btn btn-md btn-primary" value="Save Quote" onClick={this.saveQuote}/>
+            : undefined}
+          <br/><br/>
           </div>
         </form>
       );
@@ -123,11 +132,11 @@ class CreateQuote extends React.Component {
       };
       this.calculateWorker(this.state.hours, this.state.hourlyRate, true);
       this.state.workers.push(newItem)
-      this.setState(state => ({
+      this.setState({
         workerName: '',
         hours: '',
         hourlyRate: ''
-      }));
+      });
     }
 
     addResource(e) {
@@ -146,10 +155,52 @@ class CreateQuote extends React.Component {
       console.log(resourcesTotal)
       this.setState({resourcesCost: resourcesTotal})
       this.state.resources.push(newItem)
-      this.setState(state => ({
+      this.setState({
         resource: '',
         resourceCost: ''
-      }));
+      });
+    }
+
+    calculateFinalBudget(e) {
+      e.preventDefault();
+      
+      let finalBudget = ''+((parseInt(this.state.workersCost) || 0) + (parseInt(this.state.resourcesCost) || 0));
+      console.log(finalBudget)
+      this.setState({finalBudget: finalBudget})
+      return finalBudget;
+      
+    }
+
+    saveQuote(e) {
+      e.preventDefault();
+      if (!sessionStorage.getItem('auth')) return;
+      // if(!this.state.resource.length || !this.state.resourceCost.length){
+      //   return;
+      // }
+      console.log(JSON.parse(sessionStorage.getItem('auth')).user._id)
+      let data = {
+        user_id: JSON.parse(sessionStorage.getItem('auth')).user._id,
+        username: JSON.parse(sessionStorage.getItem('auth')).user.username,
+        quote_name: this.state.quoteName,
+        workers: this.state.workers,
+        resources: this.state.resources,
+        final_budget: this.state.finalBudget
+      };
+      //if (add) {
+      //let finalBudget = ''+((parseInt(this.state.workerCost) || 0) + (parseInt(this.state.resourcesCost) || 0));
+      //} else workersTotal = "" + ((parseInt(this.state.workersCost) || 0) - parseInt(workersTotal));
+      
+      console.log(data)
+      var requestURI = "http://localhost:8000/api/quote"
+      axios.post(requestURI, data)
+        .then(response => {
+            console.log("Complete Saving Quote to database")
+            
+
+            })
+        .catch(err => {
+            console.log(err)
+        });
     }
 
     calculateWorker (hours, hourlyRate, add) {
@@ -224,5 +275,6 @@ class ResourceList extends React.Component {
     );
   }
 }
+
 
 export default CreateQuote;

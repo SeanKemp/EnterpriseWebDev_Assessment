@@ -1,26 +1,30 @@
 import { Outlet } from "react-router-dom";
-import { Redirect } from 'react-router';
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux'
+import { getAuthBool, unsetAuthBool } from '../reduxslice'
+
 
 export default function Root() {
   
-  const authUser = sessionStorage.getItem('auth')
+  //const authUser = sessionStorage.getItem('auth')
+  const dispatch = useDispatch()
   let navigate = useNavigate()
 
   const logout = (e) => {
     sessionStorage.removeItem("auth")
+    dispatch(unsetAuthBool())
     navigate('/logout')
   }
 
 
   let loginDisplay = <Link className="nav-link" to='/login'>Login</Link>//<a class="nav-link" href={'/login'}>Login/Register</a>
-  if (authUser) {
+  if (useSelector(getAuthBool)) {
     loginDisplay = <a className="nav-link" type="button" onClick={logout}>Logout</a> //href={'/logout'}
   }
   let acountDisplay;
-  if (authUser) {
-    acountDisplay = <Link className="nav-link" to='/account'>Login</Link>//<a class="nav-link"  href={'/account'}>Account</a>
+  if (useSelector(getAuthBool)) {
+    acountDisplay = <Link className="nav-link" to='/account'>Account</Link>//<a class="nav-link"  href={'/account'}>Account</a>
   }
 
   return (
@@ -49,16 +53,6 @@ export default function Root() {
       <div id="detail">
           <Outlet />
       </div>
-      {/* <div id="sidebar">
-        <h1>Menu</h1>
-        <div>
-          <a href={'/login'}>Login</a>
-        </div>
-        <div>
-          <a href={'/signUp'}>Sign up</a>
-        </div>
-      </div>
-      <div id="detail"></div> */}
     </>
   );
 }

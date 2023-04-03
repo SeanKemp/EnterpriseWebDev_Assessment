@@ -12,6 +12,9 @@ import Quotes from './quotes';
 import Login from './login';
 import Logout from './logout';
 import CreateQuote from './createQuote';
+import PrivateRoute from './privateroute';
+import { Provider, useDispatch } from 'react-redux';
+import reduxstore from './reduxstore';
 
 
 const router = createBrowserRouter([
@@ -30,7 +33,10 @@ const router = createBrowserRouter([
       },
       {
         path: "logout",
-        element: <Logout />,
+        element: 
+        <PrivateRoute>
+          <Logout />,
+        </PrivateRoute>,
       },
       {
         path: "quotes",
@@ -42,23 +48,22 @@ const router = createBrowserRouter([
       },
     ]
   },
-  
-
 ]);
 
 
 
 const queryClient = new QueryClient();
-
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      
+      <Provider store={reduxstore}>
+        <RouterProvider router={router} />
+      </Provider>
     </QueryClientProvider>
   </React.StrictMode>
 );
+
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

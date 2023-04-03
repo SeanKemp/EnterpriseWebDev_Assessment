@@ -1,8 +1,12 @@
 import React, {useState} from 'react'
 import axios from 'axios'
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"
+import { useSelector, useDispatch } from 'react-redux'
+import { setAuthBool, unsetAuthBool } from './reduxslice'
+
 
 export default function Login() {
+    const dispatch = useDispatch()
     let navigate = useNavigate()
     
     const [values, setValues] = useState({
@@ -41,6 +45,7 @@ export default function Login() {
         .then(response => {
             console.log("Setting JWT in storage")
             sessionStorage.setItem('auth', JSON.stringify(response.data));
+            dispatch(setAuthBool())
             navigate('/')
             })
         .catch(err => {
