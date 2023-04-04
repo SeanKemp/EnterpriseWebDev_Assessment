@@ -2,14 +2,15 @@ import React from 'react'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
 import { getAuthBool } from './reduxslice';
+import { useNavigate } from 'react-router-dom';
 
 class CreateQuote extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = { workers: [], resources: [], quoteName: '',
-            workerName: '', hours: '', hourlyRate: '', workersCost: '',
-            resource: '', resourceCost: '', resourcesCost: '', finalBudget: ''};
+            workerName: '', hours: '', hourlyRate: '', workersCost: 0,
+            resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0, editing: false, _id: ''};
         this.handleChange = this.handleChange.bind(this);
         this.addWorker = this.addWorker.bind(this);
         this.addResource = this.addResource.bind(this);
@@ -75,7 +76,7 @@ class CreateQuote extends React.Component {
                   <label htmlFor="resource">What resource do you need?</label>
                   </div>
                   <div className="col colTopStyle">
-                  <label htmlFor="resourceCost">What is this resource going to cost?</label>
+                  <label htmlFor="resourceCost">What is this resource going to cost? (£)</label>
                   </div>
                   <div className="col colMidStyle colBotStyle">
                   <input type="text" id="resource" name="resource" onChange={this.handleChange('resource')} value={this.state.resource}/>
@@ -95,21 +96,22 @@ class CreateQuote extends React.Component {
             <label htmlFor="resourcesCost">Total Resources Cost (£)</label>
             <input id="resourcesCost" readOnly value={this.state.resourcesCost}></input>
           </div>
-          <div id="finalBudgetDiv" className="row rowStyle" hidden={(!this.state.finalBudget.length) ? 'hidden' : ''}>
-            <label htmlFor="finalBudget">Final Budget (£)</label>
-            <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
+          <div className="row rowStyle">
+            <input type="button" className="btn btn-md btn-primary space" value="Calculate Final Budget" onClick={this.calculateFinalBudget}/><br/><br/>
+
+            <div id="finalBudgetDiv" className="space"  hidden={(this.state.finalBudget===0) ? 'hidden' : ''}>
+              <label id="finalBudget" htmlFor="finalBudget">Final Budget (£)</label>
+              <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
+            </div>
           </div>
-          <input type="button" className="btn btn-md btn-primary" value="Calculate Final Budget" onClick={this.calculateFinalBudget}/><br/><br/>
-          {(sessionStorage.getItem('auth'))? 
-          <input id="button" className="btn btn-md btn-primary" value="Save Quote" onClick={this.saveQuote}/>
+          {(sessionStorage.getItem('auth'))? <div className="row rowStyle">
+          <input id="button" className="btn btn-md btn-primary" value="Save Quote" onClick={this.saveQuote}/></div>
             : undefined}
           <br/><br/>
           </div>
         </form>
       );
     }
-
-
 
 
     handleChange = name => event => {
@@ -150,8 +152,8 @@ class CreateQuote extends React.Component {
         id: Date.now()
       };
       //if (add) {
-      let resourcesTotal = "" + ((parseInt(this.state.resourcesCost) || 0) + parseInt(this.state.resourceCost));
-      //} else workersTotal = "" + ((parseInt(this.state.workersCost) || 0) - parseInt(workersTotal));
+      let resourcesTotal = (this.state.resourcesCost + (parseFloat(this.state.resourceCost) || 0));
+      //} else resourcesTotal = "" + (this.state.resourcesCost - (parseFloat(this.state.resourceCost) || 0));
       console.log(resourcesTotal)
       this.setState({resourcesCost: resourcesTotal})
       this.state.resources.push(newItem)
@@ -163,8 +165,9 @@ class CreateQuote extends React.Component {
 
     calculateFinalBudget(e) {
       e.preventDefault();
-      
-      let finalBudget = ''+((parseInt(this.state.workersCost) || 0) + (parseInt(this.state.resourcesCost) || 0));
+      console.log(this.state.workersCost)
+      console.log(this.state.resourcesCost)
+      let finalBudget = (parseFloat(this.state.workersCost) + parseFloat(this.state.resourcesCost));
       console.log(finalBudget)
       this.setState({finalBudget: finalBudget})
       return finalBudget;
@@ -173,34 +176,55 @@ class CreateQuote extends React.Component {
 
     saveQuote(e) {
       e.preventDefault();
-      if (!sessionStorage.getItem('auth')) return;
+      let auth = sessionStorage.getItem('auth')
+      if (!auth) return;
       // if(!this.state.resource.length || !this.state.resourceCost.length){
       //   return;
       // }
-      console.log(JSON.parse(sessionStorage.getItem('auth')).user._id)
+      console.log(JSON.parse(auth).user._id)
       let data = {
-        user_id: JSON.parse(sessionStorage.getItem('auth')).user._id,
-        username: JSON.parse(sessionStorage.getItem('auth')).user.username,
+        user_id: JSON.parse(auth).user._id,
+        username: JSON.parse(auth).user.username,
         quote_name: this.state.quoteName,
         workers: this.state.workers,
+        workers_cost: this.state.workersCost,
         resources: this.state.resources,
+        resources_cost: this.state.resourcesCost,
         final_budget: this.state.finalBudget
       };
       //if (add) {
       //let finalBudget = ''+((parseInt(this.state.workerCost) || 0) + (parseInt(this.state.resourcesCost) || 0));
       //} else workersTotal = "" + ((parseInt(this.state.workersCost) || 0) - parseInt(workersTotal));
-      
       console.log(data)
+      let headers = {'Authorization': 'Bearer '+JSON.parse(auth).token}
+      console.log(headers)
       var requestURI = "http://localhost:8000/api/quote"
-      axios.post(requestURI, data)
-        .then(response => {
-            console.log("Complete Saving Quote to database")
-            
-
+      if (this.state.editing) {
+        data['_id'] = this.state._id
+        axios.put(requestURI, data, {headers})
+          .then(response => {
+              console.log("Complete Updating Quote to database")
+              // this.setState({ workers: [], resources: [], quoteName: '',
+              // workerName: '', hours: '', hourlyRate: '', workersCost: 0,
+              // resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0});
+              this.props.navigation.navigate('/')
             })
-        .catch(err => {
-            console.log(err)
-        });
+          .catch(err => {
+              console.log(err)
+          });
+      } else{
+        axios.post(requestURI, data, {headers})
+          .then(response => {
+              console.log("Complete Saving Quote to database")
+              // this.setState({ workers: [], resources: [], quoteName: '',
+              // workerName: '', hours: '', hourlyRate: '', workersCost: 0,
+              // resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0});
+              this.props.navigation.navigate('/')
+            })
+          .catch(err => {
+              console.log(err)
+          });
+      }
     }
 
     calculateWorker (hours, hourlyRate, add) {
@@ -214,14 +238,32 @@ class CreateQuote extends React.Component {
           let workersTotal = JSON.stringify(response.data)
           console.log(workersTotal)
           if (add) {
-            workersTotal = "" + ((parseInt(this.state.workersCost) || 0) + parseInt(workersTotal));
-          } else workersTotal = "" + ((parseInt(this.state.workersCost) || 0) - parseInt(workersTotal));
+            workersTotal = (this.state.workersCost + parseFloat(workersTotal));
+          } else workersTotal = (this.state.workersCost - parseFloat(workersTotal));
           console.log(workersTotal)
           this.setState({workersCost: workersTotal})
         })
       .catch(err => {
           console.log(err)
       });
+    }
+
+    componentDidMount() {
+      if (sessionStorage.getItem('auth') && sessionStorage.getItem('quote')) {
+        let quote = JSON.parse(sessionStorage.getItem('quote'))
+        console.log(quote)
+        this.setState({
+          _id: quote._id,
+          editing: true,
+          quoteName: quote.quote_name,
+          workers: quote.workers,
+          workersCost: quote.workers_cost,
+          resources: quote.resources,
+          resourcesCost: quote.resources_cost,
+          finalBudget: quote.final_budget          
+        });
+        sessionStorage.removeItem('quote')
+      }
     }
 
 }

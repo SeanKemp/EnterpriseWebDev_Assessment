@@ -21,7 +21,7 @@ const create = async (req, res) => {
 
 const list = async (req, res) => {
   try {
-      let quotes = await Quote.find({userId: req.params.userId})//.select('username quote_name workers resources final_budget updated created')
+      let quotes = await Quote.find({user_id: req.auth._id})//.select('username quote_name workers resources final_budget updated created')
       res.json(quotes)
   } catch (err) {
       return res.status(400).json({
@@ -30,9 +30,27 @@ const list = async (req, res) => {
   }  
 }
 
+const quoteByID = async (req, res, next, id) => {
+  try {
+      let quote = await Quote.findById(id)
+      if (!quote)
+        return res.status('400').json({
+          error: "Quote not found"
+        })
+      req.profile = quote
+      next()
+  } catch (err) {
+      return res.status('400').json({
+        error: "Could not retrieve quote"
+      })
+  }  
+}
+
 const update = async (req, res) => {
   try {
-      let quote = req.profile
+    console.log("Updating Quote")
+      let quote = await Quote.findById(req.body._id)
+      console.log(quote)
       quote = lodash.extend(quote, req.body)
       quote.updated = Date.now()
 
@@ -47,8 +65,10 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-      let quote = req.profile
-      let deletedQuote = await quote.remove()
+    console.log("Removing Quote")
+      let quote = await Quote.findById(req.body._id)
+      console.log(quote)
+      let deletedQuote = await quote.deleteOne()
       res.json(deletedQuote)
   } catch (err) {
       return res.status(400).json({
@@ -83,6 +103,7 @@ const addWorker = (req, res) => {
 export default {
     create,
     list,
+    quoteByID,
     update,
     remove,
     addWorker

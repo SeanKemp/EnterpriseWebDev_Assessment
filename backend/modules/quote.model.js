@@ -19,8 +19,14 @@ const QuoteSchema = new mongoose.Schema({
     workers: {
         type: Array
     },
+    workers_cost: {
+        type: Number
+    },
     resources: {
         type: Array
+    },
+    resources_cost: {
+        type: Number
     },
     final_budget: {
       type: Number,

@@ -9,11 +9,7 @@ import { Link } from "react-router-dom";
 class Home extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { items: [], text: ''};
-    this.valChange = this.valChange.bind(this);
-    this.valSubmit = this.valSubmit.bind(this);
-    this.storeItems = this.storeItems.bind(this);
-    this.getItems = this.getItems.bind(this);
+
  }
 
   render() {
@@ -33,81 +29,6 @@ class Home extends React.Component {
 
         </div>
       </div>
-    );
-  }
-
-  valChange(e) {
-    this.setState({text: e.target.value})
-  }
-
-  valSubmit(e) {
-    e.preventDefault();
-    if(!this.state.text.length){
-      return;
-    }
-    const newItem = {
-      text: this.state.text,
-      id: Date.now()
-    };
-    this.setState(state => ({
-      items: state.items.concat(newItem),
-      text: ''
-    }));
-  }
-
-
-  storeItems(e) {
-    e.preventDefault();
-    console.log("Storing items")
-    var state = this.state;
-    console.log(state)
-    // First, clear the old list in the database:
-    axios.delete("http://127.0.0.1:8010/api/todolist", { crossdomain: true }).then ((response) => {
-      state.items.forEach( element =>
-      {
-        var requestURI = "http://127.0.0.1:8010/api/todolist?todoNumber=" + element.id + "&todoText=" + element.text
-        console.log(requestURI)
-        axios.post(requestURI)
-      })
-
-    })
-  }
-
-  getItems(e) {
-    console.log("Getting items")
-    e.preventDefault();
-    var todos = "woop"
-    var state = this.state;
-    state.items = [];
-    state.text = ''
-    console.log(state.items)
-    axios.get('http://127.0.0.1:8010/api/todolist').then((response) => {
-      todos = response.data;
-      console.log(todos)
-      todos.forEach(element =>
-        {
-          const newItem = {
-            text: element.todoText,
-            id: Date.now()
-          };
-          state.items = state.items.concat(newItem);
-          state.text = '';
-        })
-      console.log(state.items)
-      this.setState(state)
-
-      });
-  }
-}
-
-class HomeList extends React.Component {
-  render() {
-    return (
-      <ul>
-        {this.props.items.map((item, index) => (
-          <li key={index}>{item.text}</li>
-        ))}
-      </ul>
     );
   }
 }

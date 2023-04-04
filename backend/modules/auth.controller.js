@@ -58,7 +58,9 @@ const requireSignin = expressJwt.expressjwt({
 })
 
 const hasAuthorization = (req, res, next) => {
-  const authorized = req.profile && req.auth && req.profile._id == req.auth._id
+  console.log(req.auth)
+  const authorized = req.body && req.auth && req.body.user_id == req.auth._id
+  console.log("Checking Auth")
   if (!(authorized)) {
     return res.status(403).json({
       error: "User is not authorized"
@@ -66,6 +68,18 @@ const hasAuthorization = (req, res, next) => {
   }
   next()
 }
+
+const hasAdminAuthorization = (req, res, next) => {
+  const authorized = req.auth && User.findById(req.auth._id).is_admin == true
+  console.log("Checking Admin Auth")
+  if (!(authorized)) {
+    return res.status(403).json({
+      error: "User is not authorized"
+    })
+  }
+  next()
+}
+
 
 // Checks if web auth env variable is setup
 const hasWebAuth = function() {
@@ -80,5 +94,6 @@ export default {
   signout,
   requireSignin,
   hasAuthorization,
-  hasWebAuth
+  hasWebAuth,
+  hasAdminAuthorization
 }
