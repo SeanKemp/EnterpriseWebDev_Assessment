@@ -4,8 +4,9 @@ import mongoose from 'mongoose'
 const RatesSchema = new mongoose.Schema({
     rate_index: {
         index: true,
-        type: String,
-        required: 'UserId is needed to save quote'
+        unique: true,
+        type: Number,
+        required: 'Rate index is needed to save rate'
     },
     rate_name: {
         type: String,
@@ -13,7 +14,7 @@ const RatesSchema = new mongoose.Schema({
         required: 'Rate name is needed to save rate'
     },
     rate: {
-        type: String,
+        type: Number,
         trim: true,
         required: 'Rate is required'
     }

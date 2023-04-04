@@ -28,9 +28,22 @@ const list = async (req, res) => {
   }  
 }
 
+const listForQuote = async (req, res) => {
+  try {
+      let rates = await Rates.find().select('rate_index rate_name')
+      res.json(rates)
+  } catch (err) {
+      return res.status(400).json({
+        error: errorHandler.getErrorMessage(err)
+      })
+  }  
+}
+
 const update = async (req, res) => {
   try {
-      let rate = req.profile
+    console.log("Updating Rate")
+      let rate = await Rates.findById(req.body._id)
+      console.log(rate)
       rate = lodash.extend(rate, req.body)
 
       await rate.save()
@@ -44,8 +57,10 @@ const update = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
-      let rate = req.profile
-      let deletedRate = await rate.remove()
+    console.log("Removing Rate")
+      let rate = await Rates.findById(req.body._id)
+      console.log(rate)
+      let deletedRate = await rate.deleteOne()
       res.json(deletedRate)
   } catch (err) {
       return res.status(400).json({
@@ -58,6 +73,7 @@ const remove = async (req, res) => {
 export default {
     create,
     list,
+    listForQuote,
     update,
     remove
   }

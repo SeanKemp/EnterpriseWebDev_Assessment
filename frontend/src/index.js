@@ -11,10 +11,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Quotes from './quotes';
 import Login from './login';
 import Logout from './logout';
-import CreateQuote from './createQuote';
+import CreateQuote, {CreateQuoteNavigation} from './createQuote';
 import PrivateRoute from './privateroute';
-import { Provider, useDispatch } from 'react-redux';
+import { Provider } from 'react-redux';
 import reduxstore from './reduxstore';
+import Rates from './rates';
 
 
 const router = createBrowserRouter([
@@ -44,7 +45,11 @@ const router = createBrowserRouter([
       },
       {
         path: "createQuote",
-        element: <CreateQuote />,
+        element: <CreateQuoteNavigation />,
+      },
+      {
+        path: "admin/rates",
+        element: <Rates />,
       },
     ]
   },

@@ -32,7 +32,8 @@ const signin = async (req, res) => {
       user: {
         _id: user._id,
         name: user.name,
-        username: user.username
+        username: user.username,
+        is_admin: user.is_admin
       }
     })
   
@@ -69,8 +70,9 @@ const hasAuthorization = (req, res, next) => {
   next()
 }
 
-const hasAdminAuthorization = (req, res, next) => {
-  const authorized = req.auth && User.findById(req.auth._id).is_admin == true
+const hasAdminAuthorization = async (req, res, next) => {
+  let user = await User.findById(req.auth._id)
+  const authorized = req.auth && user.is_admin == true
   console.log("Checking Admin Auth")
   if (!(authorized)) {
     return res.status(403).json({

@@ -2,7 +2,8 @@ import React, {useState} from 'react'
 import axios from 'axios'
 import { useNavigate } from "react-router-dom"
 import { useSelector, useDispatch } from 'react-redux'
-import { setAuthBool, unsetAuthBool } from './reduxslice'
+import { setAuthBool, unsetAuthBool } from './authslice'
+import { setAdminBool, unsetAdminBool } from './adminslice'
 
 
 export default function Login() {
@@ -30,7 +31,9 @@ export default function Login() {
         var requestURI = "http://localhost:8000/api/users"
         console.log(requestURI)
         axios.post(requestURI, data)
-        
+        .then(response => {
+            navigate('/login')
+        })
     }
 
     const login = (e) =>  {
@@ -44,8 +47,11 @@ export default function Login() {
         axios.post(requestURI, data)
         .then(response => {
             console.log("Setting JWT in storage")
-            sessionStorage.setItem('auth', JSON.stringify(response.data));
+            let user = JSON.stringify(response.data)
+            sessionStorage.setItem('auth', user);
             dispatch(setAuthBool())
+            if (JSON.parse(user).user.is_admin == true) dispatch(setAdminBool())
+            else dispatch(unsetAdminBool())
             navigate('/')
             })
         .catch(err => {

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux'
-import { getAuthBool } from "./reduxslice";
+import { getAuthBool } from "./authslice";
 import React, {useEffect, useState} from 'react'
 import axios from "axios";
 
@@ -13,7 +13,7 @@ export default function Quotes() {
     );
     const navigate = useNavigate()
     var loggedIn
-    if (sessionStorage.getItem('auth')) loggedIn = true //useSelector(getAuthBool)
+    if (useSelector(getAuthBool)) loggedIn = true
     else loggedIn = false
     console.log(loggedIn)
     

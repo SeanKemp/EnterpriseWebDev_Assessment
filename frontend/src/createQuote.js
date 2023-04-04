@@ -1,8 +1,7 @@
 import React from 'react'
 import axios from 'axios'
-import { useSelector } from 'react-redux'
-import { getAuthBool } from './reduxslice';
 import { useNavigate } from 'react-router-dom';
+
 
 class CreateQuote extends React.Component {
 
@@ -10,10 +9,11 @@ class CreateQuote extends React.Component {
         super(props);
         this.state = { workers: [], resources: [], quoteName: '',
             workerName: '', hours: '', hourlyRate: '', workersCost: 0,
-            resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0, editing: false, _id: ''};
+            resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0, editing: false, _id: '', rates: []};
         this.handleChange = this.handleChange.bind(this);
         this.addWorker = this.addWorker.bind(this);
         this.addResource = this.addResource.bind(this);
+        this.updateWorkersState = this.updateWorkersState.bind(this);
         this.calculateWorker = this.calculateWorker.bind(this);
         this.calculateFinalBudget = this.calculateFinalBudget.bind(this);
         this.saveQuote = this.saveQuote.bind(this);
@@ -22,7 +22,7 @@ class CreateQuote extends React.Component {
 
     render() {
       return (
-        <form className="formStyle">
+        <div className="formStyle">
           <div className="container">
           
           <div className="row">
@@ -54,7 +54,12 @@ class CreateQuote extends React.Component {
                   <input type="text" id="hours" name="hours" onChange={this.handleChange('hours')} value={this.state.hours}/>
                 </div>
                 <div className="col colBotStyle">
-                  <input type="text" id="hourlyRate" name="hourlyRate" onChange={this.handleChange('hourlyRate')} value={this.state.hourlyRate}/>
+                  <select name="hourlyRate" onChange={this.handleChange('hourlyRate')}>
+                    {this.state.rates.map((rate) => (
+                      <option value={rate.rate_index}>{rate.rate_name}</option>
+                    ))}
+                  </select>
+                  {/* <input type="text" id="hourlyRate" name="hourlyRate" onChange={this.handleChange('hourlyRate')} value={this.state.hourlyRate}/> */}
                 </div>
               </div>
             </div>
@@ -62,7 +67,34 @@ class CreateQuote extends React.Component {
             <br/><br/>
             <div className="container pt-4">
               <div className="table-responsive">
-                <WorkerList items={this.state.workers}/>
+                {/* <WorkerList items={this.state.workers}/> */}
+                <table className="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th className="text-center">Worker Name</th>
+                      <th className="text-center">Work Hours</th>
+                      <th className="text-center">Hourly Rate</th>
+                      {/* <th className="text-center"></th> */}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.state.workers.map((worker, index) => (
+                      <tr key={index}>
+                        <td>{worker.workerName}</td>
+                        <td>{worker.hours}</td>
+                        <td>{(this.state.rates.filter((rate) => 
+                            JSON.parse(JSON.stringify(rate)).rate_index == worker.hourlyRate
+                          ))[0].rate_name}</td>
+                        <td><button className="btn btn-md btn-primary" onClick={() => {
+                          this.setState({workers: this.state.workers.filter((worker, idx) => 
+                            idx !== index
+                          )});
+                          this.setState({workersCost: parseFloat(this.state.workersCost-worker.workerCost)})
+                        }}>DELETE</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
             <label htmlFor="workersCost">Total Workers Cost (£)</label>
@@ -90,7 +122,29 @@ class CreateQuote extends React.Component {
             <br/><br/>
             <div className="container pt-4">
               <div className="table-responsive">
-                <ResourceList items={this.state.resources}/>
+                {/* <ResourceList items={this.state.resources}/> */}
+                <table className="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th className="text-center">Resource Name</th>
+                      <th className="text-center">Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.state.resources.map((res, index) => (
+                      <tr key={index}>
+                        <td>{res.resource}</td>
+                        <td>{res.resourceCost}</td>
+                        <td><button className="btn btn-md btn-primary" onClick={() => {
+                          this.setState({resources: this.state.resources.filter((ele, idx) => 
+                            idx !== index
+                          )});
+                          this.setState({resourcesCost: parseFloat(this.state.resourcesCost-res.resourceCost)})
+                        }}>DELETE</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
             <label htmlFor="resourcesCost">Total Resources Cost (£)</label>
@@ -109,7 +163,7 @@ class CreateQuote extends React.Component {
             : undefined}
           <br/><br/>
           </div>
-        </form>
+        </div>
       );
     }
 
@@ -120,21 +174,38 @@ class CreateQuote extends React.Component {
 
     addWorker(e) {
       e.preventDefault();
-      if(!this.state.workerName.length || !this.state.hours.length || !this.state.hourlyRate.length){
+      if(!this.state.workerName.length || !this.state.hours.length || !this.state.hourlyRate.length ||
+          this.state.hourlyRate == -1){
         return;
       }
-      console.log(this.state.workerName)
-      console.log(this.state.hours)
       console.log(this.state.hourlyRate)
+      var requestURI = "http://localhost:8000/api/quote/addWorker"
+      axios.post(requestURI, {hours:this.state.hours, hourlyRate:this.state.hourlyRate})
+      .then(response => {
+          console.log("Getting Worker Cost")
+          let workerCost = JSON.stringify(response.data)
+          let workersTotal = (this.state.workersCost + parseFloat(workerCost));
+          console.log(workersTotal)
+          this.setState({workersCost: workersTotal})
+          this.updateWorkersState(parseFloat(workerCost))
+        })
+      .catch(err => {
+          console.log(err)
+      });
+      //let workerCost = this.calculateWorker(this.state.hours, this.state.hourlyRate, true);
+      
+    }
+
+    updateWorkersState(cost) {
       const newItem = {
         workerName: this.state.workerName,
         hours: this.state.hours,
         hourlyRate: this.state.hourlyRate,
-        id: Date.now()
+        id: Date.now(),
+        workerCost: cost
       };
-      this.calculateWorker(this.state.hours, this.state.hourlyRate, true);
-      this.state.workers.push(newItem)
       this.setState({
+        workers: [...this.state.workers, newItem],
         workerName: '',
         hours: '',
         hourlyRate: ''
@@ -207,7 +278,7 @@ class CreateQuote extends React.Component {
               // this.setState({ workers: [], resources: [], quoteName: '',
               // workerName: '', hours: '', hourlyRate: '', workersCost: 0,
               // resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0});
-              this.props.navigation.navigate('/')
+              this.props.navigate('/quotes')
             })
           .catch(err => {
               console.log(err)
@@ -219,7 +290,7 @@ class CreateQuote extends React.Component {
               // this.setState({ workers: [], resources: [], quoteName: '',
               // workerName: '', hours: '', hourlyRate: '', workersCost: 0,
               // resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0});
-              this.props.navigation.navigate('/')
+              this.props.navigate('/quotes')
             })
           .catch(err => {
               console.log(err)
@@ -242,6 +313,7 @@ class CreateQuote extends React.Component {
           } else workersTotal = (this.state.workersCost - parseFloat(workersTotal));
           console.log(workersTotal)
           this.setState({workersCost: workersTotal})
+          return workersTotal
         })
       .catch(err => {
           console.log(err)
@@ -264,59 +336,29 @@ class CreateQuote extends React.Component {
         });
         sessionStorage.removeItem('quote')
       }
+      var requestURI = "http://localhost:8000/api/rates/quote"
+      axios.get(requestURI)
+      .then(response => {
+          console.log("Getting Rates Data")
+          let ratesData = response.data
+          ratesData.sort((a, b) => parseInt(a.rate_index) - parseInt(b.rate_index));
+          if (ratesData.length == 0) ratesData = [{rate_index: -1, rate_name: 'No Rates Setup'}]
+          else ratesData = [{rate_index: -1, rate_name: '-SELECT-'}, ...ratesData]
+          
+          //if (ratesData.length == 0) ratesData = [{_id: '',rate_index: -1, rate_name: 'No Rates Setup', rate: 0}]
+          //else ratesData = [{_id: '',rate_index: -1, rate_name: '-SELECT-', rate: 0}, ...ratesData]
+          this.setState({rates: ratesData})
+      })
+      .catch(err => {
+          console.log(err)
+      });
     }
 
 }
 
-class WorkerList extends React.Component {
-  render() {
-    return (
-      <table className="table table-bordered">
-        <thead>
-          <tr>
-            <th className="text-center">Worker Name</th>
-            <th className="text-center">Work Hours</th>
-            <th className="text-center">Hourly Rate</th>
-            {/* <th className="text-center"></th> */}
-          </tr>
-        </thead>
-        <tbody id="tWorkerBody">
-          {this.props.items.map((item, index) => (
-            <tr key={index}>
-              <td>{item.workerName}</td>
-              <td>{item.hours}</td>
-              <td>{item.hourlyRate}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }
+export function CreateQuoteNavigation(props) {
+  const navigate = useNavigate()
+  return (<CreateQuote navigate={navigate}></CreateQuote>)
 }
-
-class ResourceList extends React.Component {
-  render() {
-    return (
-      <table className="table table-bordered">
-        <thead>
-          <tr>
-            <th className="text-center">Resource Name</th>
-            <th className="text-center">Cost</th>
-            <th className="text-center"></th>
-          </tr>
-        </thead>
-        <tbody id="tResBody">
-          {this.props.items.map((item, index) => (
-            <tr key={index}>
-              <td>{item.resource}</td>
-              <td>{item.resourceCost}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    );
-  }
-}
-
 
 export default CreateQuote;

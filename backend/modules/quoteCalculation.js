@@ -1,12 +1,8 @@
 import config from '../config/config.js'
 
 const calculateWorkerCost = function (hours, hourlyRate) {
-    return hours * (hourlyRate * config.fudgeFactor);
+    return parseFloat((parseFloat(hours) * (parseFloat(hourlyRate) * config.fudgeFactor)).toFixed(2));
 }
 
-const calculateFinalBudget = function () {
-    
-}
-// Probably need to connect to database to get hourlyRate values from the id that will be sent to here
 
 export default calculateWorkerCost;
