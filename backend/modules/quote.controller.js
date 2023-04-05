@@ -83,9 +83,11 @@ const addWorker = async (req, res) => {
     try {
       var hours = req.body.hours;
       var hourlyRate = req.body.hourlyRate;
+      var useFudge = req.body.useFudge;
+      console.log(useFudge)
       let rate = await Rates.findOne({rate_index: hourlyRate})
       console.log("API addWorker POST")
-      res.json(quoteCalculation(hours, rate.rate))
+      res.json(quoteCalculation(hours, rate.rate, useFudge))
     } catch (err) {
         return res.status(400).json({
           error: errorHandler.getErrorMessage(err)

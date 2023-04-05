@@ -3,13 +3,20 @@ import { useSelector } from 'react-redux'
 import { getAuthBool } from "./authslice";
 import React, {useEffect, useState} from 'react'
 import axios from "axios";
-
+import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
+import ToggleButton from 'react-bootstrap/ToggleButton';
 
 //class Quotes extends React.Component {
     
 export default function Quotes() {    
     const [quotes, setQuotes] = useState(
         []
+    );
+    const [combines, setCombines] = useState(
+        {}
+    );
+    const [combineText, setCombineText] = useState(
+        'SELECT'
     );
     const navigate = useNavigate()
     var loggedIn
@@ -36,7 +43,7 @@ export default function Quotes() {
 
     // Effectively the same as componentDidMount (https://stackoverflow.com/a/58101332)
     useEffect(()=>{
-        getQuoteData();
+        if (loggedIn)getQuoteData();
     }, [])
     
 
@@ -63,7 +70,7 @@ export default function Quotes() {
                             </tr>
                         </thead>
                         <tbody>
-                        {quotes.map(quote => (
+                        {quotes.map((quote, index) => (
                             <tr key={quote._id}>
                                 <td>{quote.quote_name}</td>
                                 <td>{quote.final_budget}</td>
@@ -71,7 +78,21 @@ export default function Quotes() {
                                 <td><button className="btn btn-md btn-primary" onClick={() => {
                                     sessionStorage.setItem("quote", JSON.stringify(quote))
                                     navigate('/createQuote')
-                                }}>EDIT</button></td>
+                                }}>VIEW/EDIT</button></td>
+                                <td><ToggleButtonGroup type="checkbox" className="mb-2">
+                                    <ToggleButton id={'tbg-check-'+index}  variant="outline-primary" checked={(combines && combines._id === quote._id)} onChange={(e)=>{
+                                        if(e.currentTarget.checked) {
+                                            console.log("Checked")
+                                            if (Object.keys(combines).length === 0) {console.log("COMBINES");setCombines(quote); setCombineText('COMBINE');}
+                                            else {
+                                                sessionStorage.setItem("quoteC1", JSON.stringify(combines))
+                                                sessionStorage.setItem("quoteC2", JSON.stringify(quote))
+                                                navigate('/createQuote')
+                                            }
+                                        }
+                                        else {setCombines({}); setCombineText('SELECT')}
+                                        console.log(combines)}}>{combineText}</ToggleButton>
+                                    </ToggleButtonGroup></td>
                                 <td><button className="btn btn-md btn-primary" onClick={() => {
                                     
                                     var requestURI = "http://localhost:8000/api/quote"
