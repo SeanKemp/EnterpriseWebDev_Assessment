@@ -1,8 +1,8 @@
-//import { MongoClient } from 'mongodb'
 import config from '../config/config.js'
 import mongoose from 'mongoose'
 const MONGOURI = config.mongoUri;
 
+// Try to connect to database on server start
 mongoose.Promise = global.Promise;
 mongoose.connect(MONGOURI);
 mongoose.connection.on('error', err => {

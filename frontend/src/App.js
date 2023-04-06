@@ -14,12 +14,13 @@ class Home extends React.Component {
     return (
       <div className="background">
         <div className="formStyle container">
-          <div className="row">
+          <div className="row space">
             <h1 className="">Welcome to the Quotes and Bugdets Website</h1>
-            <p>To create a new quote or view your existing quotes please log in or register below.</p>
+            <p>You can calculate the final budget without logging in, however to get full functionality please login/register in the navigation bar above.</p>
+            <img className='quoteImg' src={require('./img/quote.jpg')} />
           </div>
-
-          <div className="row">
+          <br/>
+          <div className="row space">
             <label htmlFor="quotes">To create a new quote please head to the Quotes page below</label><br/>
             <Link className="btn btn-md btn-primary" to='/quotes'>View/Create Quotes</Link>
           </div>

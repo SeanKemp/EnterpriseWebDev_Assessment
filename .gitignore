@@ -1,3 +1,10 @@
+setupdb.sh
+setupprod.js
+setupdev.js
+setupadmin.js
+runserver.sh
+installs.sh
+
 # Logs
 */logs
 *.log

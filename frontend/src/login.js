@@ -17,11 +17,15 @@ export default function Login() {
         password: '',
         username: '',
         open: false,
-        error: ''
+        registered: false
     });
+
+    const [error, setError] = useState('')
     
     const handleChange = name => event => {
-        setValues({ ...values, [name]: event.target.value })
+        if (name[0] === 'p') setValues({...values, [name]: event.target.value.replace(/[^\w\s!@#?$%^&*]{0,25}$/, "") })
+        else if (name[0] === 'u') setValues({...values, [name]: event.target.value.replace(/[^\w]/, "") })
+        else setValues({...values, [name]: event.target.value.replace(/[^A-Za-z\s]/, "") })
     }
 
     const register = (e) =>  {
@@ -30,9 +34,25 @@ export default function Login() {
         let data = {"name": values.name, "username": values.username_reg, "password" : values.password_reg}
         var requestURI = "http://localhost:8000/api/users"
         console.log(requestURI)
+        console.log(data)
         axios.post(requestURI, data)
         .then(response => {
-            navigate('/login')
+            // Registered please now login set
+            setValues({
+                name: '',
+                password_reg: '',
+                username_reg: '',
+                password: '',
+                username: '',
+                open: true,
+                registered: true
+            });
+            setError('')
+        })
+        .catch(err => {
+            console.log(err.response.data.error)
+            setError(err.response.data.error)
+            setValues({...values,open:true, registered:false})
         })
     }
 
@@ -55,7 +75,10 @@ export default function Login() {
             navigate('/')
             })
         .catch(err => {
-            console.log(err)
+            console.log(err.response.data.error)
+            setValues({...values,open:true})
+            setError(err.response.data.error)
+            console.log(error)
         });
         
     }
@@ -68,15 +91,19 @@ export default function Login() {
                 <h1 className="">Login/Register</h1>
                 <p>Please login or register below.</p>
             </div>
+            <div className="row" hidden={(!values.open)?"hidden":""}>
+                <p hidden={(error === '')?'hidden':''} className='error'>Error: {error}</p>
+                <h3 hidden={(!values.registered)? 'hidden': ''} className="">You have been registered, please login below:</h3>
+            </div>
             <div className="row">
                 <div className="col rowStyle">
                 <div className="row">
                     <h3 className="">Login</h3>
                     <label htmlFor="username">Username</label>
-                    <input type="text" id="username" name="username" onChange={handleChange('username')}/>
+                    <input type="text" id="username" name="username" onChange={handleChange('username')} value={values.username}/>
 
                     <label htmlFor="password">Password</label>
-                    <input className="space" type="password" id="password" name="password" onChange={handleChange('password')}/>
+                    <input className="space" type="password" id="password" name="password" onChange={handleChange('password')} value={values.password}/>
                     
                     <input type='submit' id="login" className="btn btn-md btn-primary" value="Login" onClick={login} />
                 </div>
@@ -85,12 +112,12 @@ export default function Login() {
                 <div className="row">
                     <h3 className="">Register</h3>
                     <label htmlFor="name">Name</label>
-                    <input type="text" id="name" name="name" onChange={handleChange('name')}/>
+                    <input type="text" id="name" name="name" onChange={handleChange('name')} value={values.name}/>
                     <label htmlFor="username_reg">Username</label>
-                    <input type="text" id="username_reg" name="username_reg" onChange={handleChange('username_reg')}/>
+                    <input type="text" id="username_reg" name="username_reg" onChange={handleChange('username_reg')}value={values.username_reg}/>
 
                     <label htmlFor="password_reg">Password</label>
-                    <input className="space" type="password" id="password_reg" name="password_reg" onChange={handleChange('password_reg')}/>
+                    <input className="space" type="password" id="password_reg" name="password_reg" onChange={handleChange('password_reg')} value={values.password_reg}/>
                     <input type='submit' id="register" className="btn btn-md btn-primary" value="Register" onClick={register}/>
                 </div>
                 </div>

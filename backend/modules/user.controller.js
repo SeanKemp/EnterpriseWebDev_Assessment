@@ -3,6 +3,7 @@ import lodash from 'lodash'
 import errorHandler from './dbErrorHandler.js'
 import authCtrl from './auth.controller.js'
 
+// Create new User data
 const create = async (req, res) => {  
   const user = new User(req.body)
   try {
@@ -21,6 +22,7 @@ const create = async (req, res) => {
   }
 }
 
+// List selected fields of User data
 const list = async (req, res) => {
   try {
       let users = await User.find().select('name username updated created')
@@ -32,6 +34,7 @@ const list = async (req, res) => {
   }  
 }
 
+// Return user data from user id
 const userByID = async (req, res, next, id) => {
   try {
       let user = await User.findById(id)
@@ -48,12 +51,14 @@ const userByID = async (req, res, next, id) => {
   }  
 }
 
+// Remove sensitive data before sending back to frontend
 const read = (req, res) => {
   req.profile.hashed_password = undefined
   req.profile.salt = undefined
   return res.json(req.profile)
 }
 
+// Update existing User data
 const update = async (req, res) => {
   try {
       let user = req.profile
@@ -78,6 +83,7 @@ const update = async (req, res) => {
   }  
 }
 
+// Remove specified user data
 const remove = async (req, res) => {
   try {
       let user = req.profile

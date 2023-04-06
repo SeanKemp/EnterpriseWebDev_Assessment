@@ -20,6 +20,8 @@ export default function Rates() {
         []
     );
 
+    const [error, setError] = useState('');
+
     
     const navigate = useNavigate()
 
@@ -57,7 +59,9 @@ export default function Rates() {
     }
     
     const handleChange = name => event => {
-        setValues({ ...values, [name]: event.target.value })
+        if (name === 'rateName') setValues({ ...values, [name]: event.target.value.replace(/[^\w\s]/, "") })
+        else if (name === 'rateIndex') setValues({ ...values, [name]: event.target.value.replace(/[^\d]/, "") })
+        else setValues({ ...values, [name]: event.target.value.replace(/[^\d.]/, "") })
     }
     
 
@@ -69,6 +73,9 @@ export default function Rates() {
             <div class="row">
                 <div class="row">
                     <p>Please view all rates below.</p>
+                </div>
+                <div className="row" hidden={(error === '')?'hidden':''}>
+                    <p className='error'>Error: {error}</p>
                 </div>
                 <table className="table table-bordered">
                     <thead>
@@ -103,10 +110,11 @@ export default function Rates() {
                                 axios.delete(requestURI, {headers: headers, data: rate})
                                 .then(response => {
                                     console.log("Deleted Rate")
-                                    // setRates(rates.filter(r =>
-                                    //     r._id !== rate._id
-                                    // ));
                                     getRatesData()
+                                })
+                                .catch(err => {
+                                    console.log(err.response.data.error)
+                                    setError(err.response.data.error)
                                 })
                             }}>DELETE</button></td>
                         </tr>
@@ -141,7 +149,7 @@ export default function Rates() {
                                 var requestURI = "http://localhost:8000/api/rates"
                                 let headers = {'Authorization': 'Bearer '+JSON.parse(sessionStorage.getItem('auth')).token}
                                 console.log(headers)
-                                let data = {rate_index: values.rateIndex, rate_name: values.rateName, rate: values.rate}
+                                let data = {rate_index: values.rateIndex, rate_name: values.rateName, rate: parseFloat(parseFloat(values.rate).toFixed(2))}
                                 console.log(data)
                                 if (values.editing) {
                                     data['_id'] = values._id
@@ -150,6 +158,11 @@ export default function Rates() {
                                         console.log("Updated Rate")
                                         getRatesData()
                                         clearValues()
+                                        setError('')
+                                    })
+                                    .catch(err => {
+                                        console.log(err.response.data.error)
+                                        setError(err.response.data.error)
                                     })
                                 } else  {
                                     axios.post(requestURI, data, {headers})
@@ -157,6 +170,11 @@ export default function Rates() {
                                         console.log("Added Rate")
                                         getRatesData()
                                         clearValues()
+                                        setError('')
+                                    })
+                                    .catch(err => {
+                                        console.log(err)
+                                        setError(err.response.data.error)
                                     })
                                 }
                                 

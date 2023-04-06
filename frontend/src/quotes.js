@@ -33,10 +33,7 @@ export default function Quotes() {
             console.log("Getting Quote Data")
             let quoteData = response.data
             console.log(quoteData)
-            console.log(Object.keys(quoteData[0]))
-            console.log(Object.values(quoteData[0]))
             setQuotes(quoteData)
-            
             
         })
     }

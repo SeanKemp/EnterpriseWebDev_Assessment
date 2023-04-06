@@ -4,9 +4,11 @@ import ratesCtrl from '../modules/rates.controller.js'
 
 const router = express.Router()
 
+// Rate route for limited field database access 
 router.route('/api/rates/quote')  
   .get(ratesCtrl.listForQuote)
 
+// Rate route for database access
 router.route('/api/rates')
   .get(authCtrl.requireSignin, authCtrl.hasAdminAuthorization, ratesCtrl.list)
   .post(authCtrl.requireSignin, authCtrl.hasAdminAuthorization, ratesCtrl.create)

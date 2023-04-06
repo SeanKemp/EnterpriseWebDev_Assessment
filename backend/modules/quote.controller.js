@@ -5,6 +5,7 @@ import errorHandler from './dbErrorHandler.js'
 import authCtrl from './auth.controller.js'
 import Rates from './rates.model.js'
 
+// Create new quote data
 const create = async (req, res) => {
     console.log("Creating Quote")  
   const quote = new Quote(req.body)
@@ -20,9 +21,10 @@ const create = async (req, res) => {
   }
 }
 
+// List all quote data by a specified user
 const list = async (req, res) => {
   try {
-      let quotes = await Quote.find({user_id: req.auth._id})//.select('username quote_name workers resources final_budget updated created')
+      let quotes = await Quote.find({user_id: req.auth._id})
       res.json(quotes)
   } catch (err) {
       return res.status(400).json({
@@ -31,22 +33,9 @@ const list = async (req, res) => {
   }  
 }
 
-const quoteByID = async (req, res, next, id) => {
-  try {
-      let quote = await Quote.findById(id)
-      if (!quote)
-        return res.status('400').json({
-          error: "Quote not found"
-        })
-      req.profile = quote
-      next()
-  } catch (err) {
-      return res.status('400').json({
-        error: "Could not retrieve quote"
-      })
-  }  
-}
 
+
+// Update quote data by quote id
 const update = async (req, res) => {
   try {
     console.log("Updating Quote")
@@ -64,6 +53,7 @@ const update = async (req, res) => {
   }  
 }
 
+// Remove quote data by quote id
 const remove = async (req, res) => {
   try {
     console.log("Removing Quote")
@@ -78,7 +68,7 @@ const remove = async (req, res) => {
   }  
 }
 
-
+// Receive worker data and return calculation from quoteCalculation module
 const addWorker = async (req, res) => {
     try {
       var hours = req.body.hours;
@@ -93,14 +83,11 @@ const addWorker = async (req, res) => {
           error: errorHandler.getErrorMessage(err)
         })
     }  
-    
 }
-
 
 export default {
     create,
     list,
-    quoteByID,
     update,
     remove,
     addWorker

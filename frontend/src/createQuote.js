@@ -10,12 +10,11 @@ class CreateQuote extends React.Component {
         super(props);
         this.state = { workers: [], resources: [], quoteName: '',
             workerName: '', hours: '', hourlyRate: -1, workersCost: 0, resource: '', resourceCost: '', 
-            resourcesCost: 0, finalBudget: 0, editing: false, _id: '', rates: [], useFudge: true, combine:false};
+            resourcesCost: 0, finalBudget: 0, editing: false, _id: '', rates: [], useFudge: true, combine:false, error:''};
         this.handleChange = this.handleChange.bind(this);
         this.addWorker = this.addWorker.bind(this);
         this.addResource = this.addResource.bind(this);
         this.updateWorkersState = this.updateWorkersState.bind(this);
-        this.calculateWorker = this.calculateWorker.bind(this);
         this.calculateFinalBudget = this.calculateFinalBudget.bind(this);
         this.saveQuote = this.saveQuote.bind(this);
     }
@@ -30,7 +29,9 @@ class CreateQuote extends React.Component {
           <div className="row">
             <h1 className="">Create a Quote</h1><br/>
             <p>To create a new quote please fill in the details below.</p>
-            
+            <div className="row" hidden={(!this.state.error === '')?"hidden":""}>
+                <p hidden={(this.state.error === '')?'hidden':''} className='error'>Error: {this.state.error}</p>
+            </div>
             {(auth && JSON.parse(auth).user.is_admin)?<div>
               <label class="form-check-label" for="useFudge">ADMIN: Should Fudge Factor be used in quote creation:</label>
               <ButtonGroup className="mb-2"><ToggleButton id="toggle-check" type="checkbox"variant="outline-primary" checked={this.state.useFudge} onChange={(e)=>this.setState({useFudge: e.currentTarget.checked})}>Use Fudge Factor</ToggleButton></ButtonGroup>
@@ -169,29 +170,31 @@ class CreateQuote extends React.Component {
               <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
             </div>
           </div>
-          {(auth)? <div className="row rowStyle">
+          {(auth && this.state.finalBudget!==0)? <div className="row rowStyle">
           <input id="button" className="btn btn-md btn-primary" value="Save Quote" onClick={this.saveQuote}/></div>
             : undefined}
-          <br/><br/>
-          </div>
+          </div><br/>
         </div>
       );
     }
 
 
     handleChange = name => event => {
-        this.setState({[name]: event.target.value})
+        if (name === 'resourceCost' || name === 'hours') this.setState({[name]: event.target.value.replace(/[^\d.]/, "")})
+        else this.setState({[name]: event.target.value.replace(/[^\w\s]/, "")})
     }
 
     addWorker(e) {
       e.preventDefault();
       if(!this.state.workerName.length || !this.state.hours.length || !this.state.hourlyRate.length ||
           this.state.hourlyRate == -1){
+            this.setState({error: 'Please fill in all worker fields before adding the worker'})
         return;
       }
+      this.setState({error: ''})
       console.log(this.state.hourlyRate)
       var requestURI = "http://localhost:8000/api/quote/addWorker"
-      axios.post(requestURI, {hours:this.state.hours, hourlyRate:this.state.hourlyRate, useFudge: this.state.useFudge})
+      axios.post(requestURI, {hours:parseFloat(parseFloat(this.state.hours).toFixed(2)), hourlyRate:this.state.hourlyRate, useFudge: this.state.useFudge})
       .then(response => {
           console.log("Getting Worker Cost")
           let workerCost = JSON.stringify(response.data)
@@ -201,16 +204,16 @@ class CreateQuote extends React.Component {
           this.updateWorkersState(parseFloat(workerCost))
         })
       .catch(err => {
-          console.log(err)
+          console.log(err.response.data.error)
+          this.setState({error: err.response.data.error})
       });
-      //let workerCost = this.calculateWorker(this.state.hours, this.state.hourlyRate, true);
       
     }
 
     updateWorkersState(cost) {
       const newItem = {
         workerName: this.state.workerName,
-        hours: this.state.hours,
+        hours: parseFloat(parseFloat(this.state.hours).toFixed(2)),
         hourlyRate: this.state.hourlyRate,
         id: Date.now(),
         workerCost: cost
@@ -226,22 +229,24 @@ class CreateQuote extends React.Component {
     addResource(e) {
       e.preventDefault();
       if(!this.state.resource.length || !this.state.resourceCost.length){
+        this.setState({error: 'Please fill in all resource fields before adding the resource'})
         return;
       }
+      this.setState({error: ''})
       const newItem = {
         resource: this.state.resource,
-        resourceCost: this.state.resourceCost,
+        resourceCost: parseFloat(parseFloat(this.state.resourceCost).toFixed(2)),
         id: Date.now()
       };
       //if (add) {
-      let resourcesTotal = (this.state.resourcesCost + (parseFloat(this.state.resourceCost) || 0));
+      let resourcesTotal = (parseFloat(this.state.resourcesCost) + (parseFloat((parseFloat(this.state.resourceCost).toFixed(2))) || 0));
       //} else resourcesTotal = "" + (this.state.resourcesCost - (parseFloat(this.state.resourceCost) || 0));
       console.log(resourcesTotal)
-      this.setState({resourcesCost: resourcesTotal})
+      this.setState({resourcesCost: parseFloat(resourcesTotal.toFixed(2))})
       this.state.resources.push(newItem)
       this.setState({
         resource: '',
-        resourceCost: ''
+        resourceCost: 0
       });
     }
 
@@ -259,10 +264,10 @@ class CreateQuote extends React.Component {
     saveQuote(e) {
       e.preventDefault();
       let auth = sessionStorage.getItem('auth')
-      if (!auth) return;
-      // if(!this.state.resource.length || !this.state.resourceCost.length){
-      //   return;
-      // }
+      if (!auth) {
+        this.setState({error: 'Not authorised to save quote'})
+        return;
+      }
       console.log(JSON.parse(auth).user._id)
       let data = {
         user_id: JSON.parse(auth).user._id,
@@ -286,7 +291,8 @@ class CreateQuote extends React.Component {
               this.props.navigate('/quotes')
             })
           .catch(err => {
-              console.log(err)
+            console.log(err.response.data.error)
+            this.setState({error: err.response.data.error})
           });
       } else{
         axios.post(requestURI, data, {headers})
@@ -295,32 +301,13 @@ class CreateQuote extends React.Component {
               this.props.navigate('/quotes')
             })
           .catch(err => {
-              console.log(err)
+            console.log(err.response.data.error)
+            this.setState({error: err.response.data.error})
           });
       }
     }
 
-    calculateWorker (hours, hourlyRate, add) {
-      console.log("Calculating Worker Cost")
-      let data = {"hours": hours, "hourlyRate" : hourlyRate}
-      console.log(data)
-      var requestURI = "http://localhost:8000/api/quote/addWorker"
-      axios.post(requestURI, data)
-      .then(response => {
-          console.log("Getting Worker Cost")
-          let workersTotal = JSON.stringify(response.data)
-          console.log(workersTotal)
-          if (add) {
-            workersTotal = (this.state.workersCost + parseFloat(workersTotal));
-          } else workersTotal = (this.state.workersCost - parseFloat(workersTotal));
-          console.log(workersTotal)
-          this.setState({workersCost: workersTotal})
-          return workersTotal
-        })
-      .catch(err => {
-          console.log(err)
-      });
-    }
+
 
     componentDidMount() {
       var requestURI = "http://localhost:8000/api/rates/quote"
@@ -337,7 +324,8 @@ class CreateQuote extends React.Component {
           this.setState({rates: ratesData})
       })
       .catch(err => {
-          console.log(err)
+        console.log(err.response.data.error)
+        this.setState({error: err.response.data.error})
       });
       if (sessionStorage.getItem('auth') && sessionStorage.getItem('quote')) {
         let quote = JSON.parse(sessionStorage.getItem('quote'))

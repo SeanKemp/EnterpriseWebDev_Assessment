@@ -2,6 +2,7 @@ import Rates from './rates.model.js'
 import lodash from 'lodash'
 import errorHandler from './dbErrorHandler.js'
 
+// Create new Rate data
 const create = async (req, res) => {
     console.log("Creating Rate")  
   const rate = new Rates(req.body)
@@ -17,6 +18,7 @@ const create = async (req, res) => {
   }
 }
 
+// List all Rate data
 const list = async (req, res) => {
   try {
       let rates = await Rates.find()
@@ -28,6 +30,7 @@ const list = async (req, res) => {
   }  
 }
 
+// List all Rate data with limited fields to prevent users from seeing the rate
 const listForQuote = async (req, res) => {
   try {
       let rates = await Rates.find().select('rate_index rate_name')
@@ -39,11 +42,11 @@ const listForQuote = async (req, res) => {
   }  
 }
 
+// Update existing Rate data
 const update = async (req, res) => {
   try {
-    console.log("Updating Rate")
+      console.log("Updating Rate")
       let rate = await Rates.findById(req.body._id)
-      console.log(rate)
       rate = lodash.extend(rate, req.body)
 
       await rate.save()
@@ -55,11 +58,11 @@ const update = async (req, res) => {
   }  
 }
 
+// Remove existing Rate data
 const remove = async (req, res) => {
   try {
-    console.log("Removing Rate")
+      console.log("Removing Rate")
       let rate = await Rates.findById(req.body._id)
-      console.log(rate)
       let deletedRate = await rate.deleteOne()
       res.json(deletedRate)
   } catch (err) {

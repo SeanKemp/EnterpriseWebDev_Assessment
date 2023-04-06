@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-
+// Quote schema for mongoDB database
 const QuoteSchema = new mongoose.Schema({
     user_id: {
         type: String,
@@ -38,10 +38,6 @@ const QuoteSchema = new mongoose.Schema({
         default: Date.now
     }
 })
-
-//QuoteSchema.index({ username: 1, quote_number: 1}, { unique: true });
-
-
 
 const quoteModel = mongoose.model('Quotes', QuoteSchema);
 quoteModel.createIndexes();

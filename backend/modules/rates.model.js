@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-
+// Rates schema for mongoDB database
 const RatesSchema = new mongoose.Schema({
     rate_index: {
         index: true,

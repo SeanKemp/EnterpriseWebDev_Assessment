@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import crypto from 'crypto'
 
+// User schema for mongoDB database
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -30,6 +31,7 @@ const UserSchema = new mongoose.Schema({
     }
 })
 
+// Schema methods for securing and authenticating User passwords
 UserSchema.methods = {
     authenticate: function(plainText) {
       return this.encryptPassword(plainText) === this.hashed_password
@@ -50,6 +52,7 @@ UserSchema.methods = {
     }
 } 
 
+// Check if password is valid to be saved in database
 UserSchema.path('hashed_password').validate(function(v) {
     if (this._password && this._password.length < 8) {
         this.invalidate('password', 'Password must be at least 8 characters.')
@@ -58,7 +61,6 @@ UserSchema.path('hashed_password').validate(function(v) {
         this.invalidate('password', 'Password is required')
     }
 }, null)
-
 
 
 UserSchema
