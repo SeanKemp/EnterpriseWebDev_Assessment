@@ -1,12 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useSelector } from 'react-redux'
-import { getAuthBool } from "./authslice";
 import React, {useEffect, useState} from 'react'
 import axios from "axios";
 
-
-//class Quotes extends React.Component {
-    
+// Rates page for admins to create, delete and updates pay rates
 export default function Rates() {    
     const [values, setValues] = useState({
         rateIndex: 0,
@@ -22,16 +17,12 @@ export default function Rates() {
 
     const [error, setError] = useState('');
 
-    
-    const navigate = useNavigate()
-
-    // Effectively the same as componentDidMount (https://stackoverflow.com/a/58101332)
+    // On initial page load: effectively the same as componentDidMount (https://stackoverflow.com/a/58101332)
     useEffect(()=>{
         getRatesData();
     }, [])
-    
 
-
+    // Get All Rates data from database
     const getRatesData = (e) => {
         var requestURI = "http://localhost:8000/api/rates"
         let headers = {'Authorization': 'Bearer '+JSON.parse(sessionStorage.getItem('auth')).token}
@@ -44,10 +35,10 @@ export default function Rates() {
         })
         .catch(err => {
             console.log(err)
-            //navigate('/')
         });
     }
 
+    // Clear states
     const clearValues = () => {
         setValues({
             rateIndex: 0,
@@ -58,12 +49,12 @@ export default function Rates() {
         })
     }
     
+    // Handle textbox/input changes to save to state, replacing unneeded characters using regular expressions seperating name, index and rate
     const handleChange = name => event => {
         if (name === 'rateName') setValues({ ...values, [name]: event.target.value.replace(/[^\w\s]/, "") })
         else if (name === 'rateIndex') setValues({ ...values, [name]: event.target.value.replace(/[^\d]/, "") })
         else setValues({ ...values, [name]: event.target.value.replace(/[^\d.]/, "") })
     }
-    
 
     return (
         <>
@@ -92,6 +83,7 @@ export default function Rates() {
                             <td>{rate.rate_name}</td>
                             <td>{rate.rate}</td>
                             <td><button className="btn btn-md btn-primary" onClick={() => {
+                                // Set states/input boxes with selected rate
                                 setValues({
                                     _id: rate._id,
                                     editing: true,
@@ -102,7 +94,7 @@ export default function Rates() {
 
                             }}>EDIT</button></td>
                             <td><button className="btn btn-md btn-primary" onClick={() => {
-                                
+                                // Delete Rate from database
                                 var requestURI = "http://localhost:8000/api/rates"
                                 let headers = {'Authorization': 'Bearer '+JSON.parse(sessionStorage.getItem('auth')).token}
                                 console.log(headers)
@@ -146,39 +138,42 @@ export default function Rates() {
                 </div>
 
                 <button className="btn btn-md btn-primary" id="addRate" type="button" onClick={() => {
-                                var requestURI = "http://localhost:8000/api/rates"
-                                let headers = {'Authorization': 'Bearer '+JSON.parse(sessionStorage.getItem('auth')).token}
-                                console.log(headers)
-                                let data = {rate_index: values.rateIndex, rate_name: values.rateName, rate: parseFloat(parseFloat(values.rate).toFixed(2))}
-                                console.log(data)
-                                if (values.editing) {
-                                    data['_id'] = values._id
-                                    axios.put(requestURI, data, {headers})
-                                    .then(response => {
-                                        console.log("Updated Rate")
-                                        getRatesData()
-                                        clearValues()
-                                        setError('')
-                                    })
-                                    .catch(err => {
-                                        console.log(err.response.data.error)
-                                        setError(err.response.data.error)
-                                    })
-                                } else  {
-                                    axios.post(requestURI, data, {headers})
-                                    .then(response => {
-                                        console.log("Added Rate")
-                                        getRatesData()
-                                        clearValues()
-                                        setError('')
-                                    })
-                                    .catch(err => {
-                                        console.log(err)
-                                        setError(err.response.data.error)
-                                    })
-                                }
-                                
-                            }}>{values.editing? 'Update Rate':'Add Rate'}</button>
+                    // Create or update rate in database
+                    var requestURI = "http://localhost:8000/api/rates"
+                    let headers = {'Authorization': 'Bearer '+JSON.parse(sessionStorage.getItem('auth')).token}
+                    console.log(headers)
+                    let data = {rate_index: values.rateIndex, rate_name: values.rateName, rate: parseFloat(parseFloat(values.rate).toFixed(2))}
+                    console.log(data)
+                    // if editing rates, update database entry
+                    if (values.editing) {
+                        data['_id'] = values._id
+                        axios.put(requestURI, data, {headers})
+                        .then(response => {
+                            console.log("Updated Rate")
+                            getRatesData()
+                            clearValues()
+                            setError('')
+                        })
+                        .catch(err => {
+                            console.log(err.response.data.error)
+                            setError(err.response.data.error)
+                        })
+                    } // else create new database entry
+                    else  {
+                        axios.post(requestURI, data, {headers})
+                        .then(response => {
+                            console.log("Added Rate")
+                            getRatesData()
+                            clearValues()
+                            setError('')
+                        })
+                        .catch(err => {
+                            console.log(err)
+                            setError(err.response.data.error)
+                        })
+                    }
+                    
+                }}>{values.editing? 'Update Rate':'Add Rate'}</button>
                 <br/><br/>
             
             </div>

@@ -3,7 +3,8 @@ setupprod.js
 setupdev.js
 setupadmin.js
 runserver.sh
-installs.sh
+install_all.sh
+database.sh
 
 # Logs
 */logs

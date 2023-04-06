@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+// Redux slice for user authentication global variable
 export const authSlice = createSlice({
   name: 'auth',
   initialState: {

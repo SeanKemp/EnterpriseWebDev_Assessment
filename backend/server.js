@@ -17,20 +17,21 @@ var options = {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Directory for react frontend build
 var dir = path.join(__dirname, '/frontend/build/');
-
-/// Some other code with the api paths might go in here. 
-
+// Use react frontend directory as
 app.use(express.static(dir, options));
 
+// Set up routes for express app
 router(app);
 app.get('*', (req, res) => res.sendFile(path.join(dir, 'index.html')));
 
+// Error 404 catch
 app.use((req, res, next) => {
   res.status(404).send("Error 404: Can't find that page")
 });
 
-
+// Unauthorized error catch
 app.use((err, req, res, next) => {
   if (err.name === 'UnauthorizedError') {
     res.status(401).json({"error" : err.name + ": " + err.message})

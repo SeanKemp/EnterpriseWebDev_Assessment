@@ -3,15 +3,14 @@ import { useDispatch } from "react-redux";
 import { unsetAuthBool } from "./authslice";
 import { unsetAdminBool } from "./adminslice";
 
+// Logout page
 export default function Logout() {
-    //sessionStorage.removeItem("auth")
-    //window.location.reload(false);
     const dispatch = useDispatch()
+    // On page load remove auth token and set user and admin global variables to false
     useEffect(() => {
       sessionStorage.removeItem("auth")
       dispatch(unsetAuthBool())
       dispatch(unsetAdminBool())
-      //navigate('/logout')
     }, [])
 
     return (

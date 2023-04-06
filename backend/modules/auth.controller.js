@@ -83,7 +83,7 @@ const hasAdminAuthorization = async (req, res, next) => {
 }
 
 
-// Checks if web auth env variable is setup
+// Checks if web auth env variable is setup to allow users to be set as admins
 const hasWebAuth = function() {
   const authorized = config.webAuth === 'cm1604413'
   if (!(authorized)) {

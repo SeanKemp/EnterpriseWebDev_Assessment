@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+// Redux slice for admin authentication global variable
 export const adminSlice = createSlice({
     name: 'admin',
     initialState: {

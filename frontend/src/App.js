@@ -1,13 +1,11 @@
-import logo from './logo.svg';
 import React from 'react';
 import './App.css';
 import { Link } from "react-router-dom";
 
-
+// Home page
 class Home extends React.Component {
   constructor(props) {
     super(props);
-
  }
 
   render() {
@@ -20,7 +18,7 @@ class Home extends React.Component {
             <img className='quoteImg' src={require('./img/quote.jpg')} />
           </div>
           <br/>
-          <div className="row space">
+          <div className="row">
             <label htmlFor="quotes">To create a new quote please head to the Quotes page below</label><br/>
             <Link className="btn btn-md btn-primary" to='/quotes'>View/Create Quotes</Link>
           </div>

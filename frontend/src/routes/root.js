@@ -4,17 +4,20 @@ import { useSelector, useDispatch } from 'react-redux'
 import { getAuthBool, setAuthBool } from '../authslice'
 import { getAdminBool, setAdminBool } from '../adminslice'
 
-
+// Root component navigation bar for all pages
 export default function Root() {
   
   const dispatch = useDispatch()
+  // Set global variables based on auth token if user wants to come back to auth session after page load
   const auth = sessionStorage.getItem('auth')
-  if (auth) {dispatch(setAuthBool()); if (JSON.parse(auth).user.is_admin == true) dispatch(setAdminBool())} //console.log("Checking AUTH");
+  if (auth) {dispatch(setAuthBool()); if (JSON.parse(auth).user.is_admin == true) dispatch(setAdminBool())} 
 
+  // if user is logged in display logout link, otherwise display Login/Register link
   let loginDisplay = <Link className="nav-link" to='/login'>Login/Register</Link>
   if (useSelector(getAuthBool)) {
     loginDisplay = <Link className="nav-link" to='/logout'>Logout</Link>
   }
+  // If user is admin display Rates page link
   let ratesDisplay;
   if (useSelector(getAdminBool)) {
     ratesDisplay = <Link className="nav-link" to='/admin/rates'>Rates</Link>

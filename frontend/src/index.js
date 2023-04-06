@@ -11,13 +11,13 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Quotes from './quotes';
 import Login from './login';
 import Logout from './logout';
-import CreateQuote, {CreateQuoteNavigation} from './createQuote';
+import {CreateQuoteNavigation} from './createQuote';
 import PrivateRoute from './privateroute';
 import { Provider } from 'react-redux';
 import reduxstore from './reduxstore';
 import Rates from './rates';
 
-
+// Routing for frontend app
 const router = createBrowserRouter([
   {
     path: "/",
@@ -54,8 +54,6 @@ const router = createBrowserRouter([
     ]
   },
 ]);
-
-
 
 const queryClient = new QueryClient();
 const root = ReactDOM.createRoot(document.getElementById('root'));

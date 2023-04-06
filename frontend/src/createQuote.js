@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 
+// Page for Quote Creation, editing and combining
 class CreateQuote extends React.Component {
-
     constructor(props) {
         super(props);
         this.state = { workers: [], resources: [], quoteName: '',
@@ -18,7 +18,6 @@ class CreateQuote extends React.Component {
         this.calculateFinalBudget = this.calculateFinalBudget.bind(this);
         this.saveQuote = this.saveQuote.bind(this);
     }
-
 
     render() {
       const auth = sessionStorage.getItem('auth')
@@ -35,8 +34,6 @@ class CreateQuote extends React.Component {
             {(auth && JSON.parse(auth).user.is_admin)?<div>
               <label class="form-check-label" for="useFudge">ADMIN: Should Fudge Factor be used in quote creation:</label>
               <ButtonGroup className="mb-2"><ToggleButton id="toggle-check" type="checkbox"variant="outline-primary" checked={this.state.useFudge} onChange={(e)=>this.setState({useFudge: e.currentTarget.checked})}>Use Fudge Factor</ToggleButton></ButtonGroup>
-            
-            {/* <input className="form-check-input" name='useFudge' type="checkbox" defaultChecked={this.state.useFudge} onClick={this.handleChange('useFudge')} /> */}
             </div>:''}
               
             <div>
@@ -70,7 +67,6 @@ class CreateQuote extends React.Component {
                       <option value={rate.rate_index}>{rate.rate_name}</option>
                     ))}
                   </select>
-                  {/* <input type="text" id="hourlyRate" name="hourlyRate" onChange={this.handleChange('hourlyRate')} value={this.state.hourlyRate}/> */}
                 </div>
               </div>
             </div>
@@ -78,14 +74,12 @@ class CreateQuote extends React.Component {
             <br/><br/>
             <div className="container pt-4">
               <div className="table-responsive">
-                {/* <WorkerList items={this.state.workers}/> */}
                 <table className="table table-bordered">
                   <thead>
                     <tr>
                       <th className="text-center">Worker Name</th>
                       <th className="text-center">Work Hours</th>
                       <th className="text-center">Hourly Rate</th>
-                      {/* <th className="text-center"></th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -134,7 +128,6 @@ class CreateQuote extends React.Component {
             <br/><br/>
             <div className="container pt-4">
               <div className="table-responsive">
-                {/* <ResourceList items={this.state.resources}/> */}
                 <table className="table table-bordered">
                   <thead>
                     <tr>
@@ -166,7 +159,7 @@ class CreateQuote extends React.Component {
             <input type="button" className="btn btn-md btn-primary space" value="Calculate Final Budget" onClick={this.calculateFinalBudget}/><br/><br/>
 
             <div id="finalBudgetDiv" className="space"  hidden={(this.state.finalBudget===0) ? 'hidden' : ''}>
-              <label id="finalBudget" htmlFor="finalBudget">Final Budget (£)</label>
+              <label id="finalBudget" htmlFor="finalBudget">Final Budget (Workers Cost + Resources Cost) (£)</label>
               <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
             </div>
           </div>
@@ -178,12 +171,13 @@ class CreateQuote extends React.Component {
       );
     }
 
-
+    // Handle textbox/input changes to save to state, replacing unneeded characters using regular expressions
     handleChange = name => event => {
         if (name === 'resourceCost' || name === 'hours') this.setState({[name]: event.target.value.replace(/[^\d.]/, "")})
         else this.setState({[name]: event.target.value.replace(/[^\w\s]/, "")})
     }
 
+    // Add worker button method, posting to server to calculate worker cost using fudge factor and rate and updating workers and workers cost
     addWorker(e) {
       e.preventDefault();
       if(!this.state.workerName.length || !this.state.hours.length || !this.state.hourlyRate.length ||
@@ -210,6 +204,7 @@ class CreateQuote extends React.Component {
       
     }
 
+    // Update worker state variables after adding worker
     updateWorkersState(cost) {
       const newItem = {
         workerName: this.state.workerName,
@@ -226,6 +221,7 @@ class CreateQuote extends React.Component {
       });
     }
 
+    // Add Resource button handler, adding resource to resource list and updating total resources cost
     addResource(e) {
       e.preventDefault();
       if(!this.state.resource.length || !this.state.resourceCost.length){
@@ -238,9 +234,7 @@ class CreateQuote extends React.Component {
         resourceCost: parseFloat(parseFloat(this.state.resourceCost).toFixed(2)),
         id: Date.now()
       };
-      //if (add) {
       let resourcesTotal = (parseFloat(this.state.resourcesCost) + (parseFloat((parseFloat(this.state.resourceCost).toFixed(2))) || 0));
-      //} else resourcesTotal = "" + (this.state.resourcesCost - (parseFloat(this.state.resourceCost) || 0));
       console.log(resourcesTotal)
       this.setState({resourcesCost: parseFloat(resourcesTotal.toFixed(2))})
       this.state.resources.push(newItem)
@@ -250,6 +244,7 @@ class CreateQuote extends React.Component {
       });
     }
 
+    // Calculate Final Budget button handler for calculating and setting the final budget
     calculateFinalBudget(e) {
       e.preventDefault();
       console.log(this.state.workersCost)
@@ -261,6 +256,7 @@ class CreateQuote extends React.Component {
       
     }
 
+    // Save Quote button handler for handling quote creation and updating
     saveQuote(e) {
       e.preventDefault();
       let auth = sessionStorage.getItem('auth')
@@ -283,6 +279,7 @@ class CreateQuote extends React.Component {
       let headers = {'Authorization': 'Bearer '+JSON.parse(auth).token}
       console.log(headers)
       var requestURI = "http://localhost:8000/api/quote"
+      // If editing existing quote then update
       if (this.state.editing) {
         data['_id'] = this.state._id
         axios.put(requestURI, data, {headers})
@@ -294,7 +291,8 @@ class CreateQuote extends React.Component {
             console.log(err.response.data.error)
             this.setState({error: err.response.data.error})
           });
-      } else{
+      } // if not editing then post create new quote, combining quotes will create new quote 
+      else{
         axios.post(requestURI, data, {headers})
           .then(response => {
               console.log("Complete Saving Quote to database")
@@ -307,8 +305,7 @@ class CreateQuote extends React.Component {
       }
     }
 
-
-
+    // On initial page load, get and set rates from database and populate quote if editing or combining quotes
     componentDidMount() {
       var requestURI = "http://localhost:8000/api/rates/quote"
       axios.get(requestURI)
@@ -318,15 +315,13 @@ class CreateQuote extends React.Component {
           ratesData.sort((a, b) => parseInt(a.rate_index) - parseInt(b.rate_index));
           if (ratesData.length == 0) ratesData = [{rate_index: -1, rate_name: 'No Rates Setup'}]
           else ratesData = [{rate_index: -1, rate_name: '-SELECT-'}, ...ratesData]
-          
-          //if (ratesData.length == 0) ratesData = [{_id: '',rate_index: -1, rate_name: 'No Rates Setup', rate: 0}]
-          //else ratesData = [{_id: '',rate_index: -1, rate_name: '-SELECT-', rate: 0}, ...ratesData]
           this.setState({rates: ratesData})
       })
       .catch(err => {
         console.log(err.response.data.error)
         this.setState({error: err.response.data.error})
       });
+      // If logged in and there is a quote sent for editing then populate quote states
       if (sessionStorage.getItem('auth') && sessionStorage.getItem('quote')) {
         let quote = JSON.parse(sessionStorage.getItem('quote'))
         console.log(quote)
@@ -342,6 +337,7 @@ class CreateQuote extends React.Component {
         });
         sessionStorage.removeItem('quote')
       }
+      // If logged in and there are quotes sent for combining then populate quote states with combination of quote values
       if (sessionStorage.getItem('auth') && sessionStorage.getItem('quoteC1')) {
         let quote1 = JSON.parse(sessionStorage.getItem('quoteC1'))
         let quote2 = JSON.parse(sessionStorage.getItem('quoteC2'))
@@ -362,7 +358,7 @@ class CreateQuote extends React.Component {
 
 }
 
-
+// Allows class CreateQuote to use navigation
 export function CreateQuoteNavigation(props) {
   const navigate = useNavigate()
   return (<CreateQuote navigate={navigate}></CreateQuote>)
