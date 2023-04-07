@@ -8,9 +8,9 @@ import ToggleButton from 'react-bootstrap/ToggleButton';
 class CreateQuote extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { workers: [], resources: [], quoteName: '',
-            workerName: '', hours: '', hourlyRate: -1, workersCost: 0, resource: '', resourceCost: '', 
-            resourcesCost: 0, finalBudget: 0, editing: false, _id: '', rates: [], useFudge: true, combine:false, error:''};
+        this.state = { workers: [], resources: [], quoteName: '', workerName: '', hours: '', hourlyRate: -1, 
+            workersCost: 0, resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0, editing: false, _id: '', 
+            rates: [], useFudge: true, combine:false, error:'', calculatedBudget: false};
         this.handleChange = this.handleChange.bind(this);
         this.addWorker = this.addWorker.bind(this);
         this.addResource = this.addResource.bind(this);
@@ -95,7 +95,8 @@ class CreateQuote extends React.Component {
                           this.setState({workers: this.state.workers.filter((worker, idx) => 
                             idx !== index
                           )});
-                          this.setState({workersCost: parseFloat(this.state.workersCost-worker.workerCost)})
+                          let newWorkersCost = (parseFloat(this.state.workersCost) - parseFloat(worker.workerCost))
+                          this.setState({workersCost: parseFloat(newWorkersCost.toFixed(2))})
                         }}>DELETE</button></td>
                       </tr>
                     ))}
@@ -144,7 +145,8 @@ class CreateQuote extends React.Component {
                           this.setState({resources: this.state.resources.filter((ele, idx) => 
                             idx !== index
                           )});
-                          this.setState({resourcesCost: parseFloat(this.state.resourcesCost-res.resourceCost)})
+                          let newResCost = (parseFloat(this.state.resourcesCost) - (parseFloat(res.resourceCost)))
+                          this.setState({resourcesCost: parseFloat(newResCost.toFixed(2))}) 
                         }}>DELETE</button></td>
                       </tr>
                     ))}
@@ -163,7 +165,7 @@ class CreateQuote extends React.Component {
               <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
             </div>
           </div>
-          {(auth && this.state.finalBudget!==0)? <div className="row rowStyle">
+          {(auth && this.state.calculatedBudget)? <div className="row rowStyle">
           <input id="button" className="btn btn-md btn-primary" value="Save Quote" onClick={this.saveQuote}/></div>
             : undefined}
           </div><br/>
@@ -217,7 +219,8 @@ class CreateQuote extends React.Component {
         workers: [...this.state.workers, newItem],
         workerName: '',
         hours: '',
-        hourlyRate: -1
+        hourlyRate: -1,
+        calculatedBudget: false
       });
     }
 
@@ -240,20 +243,24 @@ class CreateQuote extends React.Component {
       this.state.resources.push(newItem)
       this.setState({
         resource: '',
-        resourceCost: 0
+        resourceCost: 0,
+        calculatedBudget: false
       });
     }
 
     // Calculate Final Budget button handler for calculating and setting the final budget
     calculateFinalBudget(e) {
       e.preventDefault();
+      if(this.state.workers.length === 0){
+        this.setState({error: 'Please add at least 1 worker to the quote'})
+        return;
+      }
       console.log(this.state.workersCost)
       console.log(this.state.resourcesCost)
       let finalBudget = (parseFloat(this.state.workersCost) + parseFloat(this.state.resourcesCost));
       console.log(finalBudget)
-      this.setState({finalBudget: finalBudget})
+      this.setState({finalBudget: finalBudget, calculatedBudget: true})
       return finalBudget;
-      
     }
 
     // Save Quote button handler for handling quote creation and updating
@@ -264,7 +271,10 @@ class CreateQuote extends React.Component {
         this.setState({error: 'Not authorised to save quote'})
         return;
       }
-      console.log(JSON.parse(auth).user._id)
+      if(this.state.workers.length === 0){
+        this.setState({error: 'Please add at least 1 worker to the quote'})
+        return;
+      }
       let data = {
         user_id: JSON.parse(auth).user._id,
         username: JSON.parse(auth).user.username,
@@ -346,9 +356,9 @@ class CreateQuote extends React.Component {
           combine: true,
           quoteName: quote1.quote_name + ' ' + quote2.quote_name,
           workers: quote1.workers.concat(quote2.workers),
-          workersCost: quote1.workers_cost + quote2.workers_cost,
+          workersCost: parseFloat((quote1.workers_cost + quote2.workers_cost).toFixed(2)),
           resources: quote1.resources.concat(quote2.resources),
-          resourcesCost: quote1.resources_cost + quote2.resources_cost,
+          resourcesCost: parseFloat((quote1.resources_cost + quote2.resources_cost).toFixed(2)),
           finalBudget: quote1.final_budget + quote2.final_budget          
         });
         sessionStorage.removeItem('quoteC1')

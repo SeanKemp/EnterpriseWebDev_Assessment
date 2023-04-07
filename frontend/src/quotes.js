@@ -23,7 +23,6 @@ export default function Quotes() {
     var loggedIn
     if (useSelector(getAuthBool)) loggedIn = true
     else loggedIn = false
-    console.log(loggedIn)
     
     // Get all saved quotes by the logged in user in the database
     const getQuoteData = (e) => {
@@ -62,7 +61,7 @@ export default function Quotes() {
                         <thead>
                             <tr>
                                 <th>Quote Name</th>
-                                <th>Final Budget</th>
+                                <th>Final Budget (£)</th>
                                 <th>Created</th>
                             </tr>
                         </thead>
