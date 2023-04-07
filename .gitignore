@@ -5,6 +5,8 @@ setupadmin.js
 runserver.sh
 install_all.sh
 database.sh
+addrates.js
+server.sh
 
 # Logs
 */logs

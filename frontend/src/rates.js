@@ -73,7 +73,7 @@ export default function Rates() {
                         <tr>
                             <th>Rate index</th>
                             <th>Rate name</th>
-                            <th>Rate</th>
+                            <th>Hourly Rate</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -122,7 +122,7 @@ export default function Rates() {
                     <label htmlFor="rateName">Rate Name</label>
                     </div>
                     <div className="col colTopStyle colMidStyle">
-                    <label htmlFor="rate">Pay Rate</label>
+                    <label htmlFor="rate">Hourly Pay Rate</label>
                     </div>
                 </div>
                 <div className="row">

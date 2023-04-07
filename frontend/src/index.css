@@ -18,6 +18,11 @@ body {
   color: red;
 }
 
+.workerTask {
+  padding-bottom: 10px;
+  border-bottom: 1px solid #555;
+}
+
 .formStyle {
   max-width: 850px;
   width: 80%;
@@ -58,6 +63,17 @@ code {
     monospace;
 }
 
-#finalBudget {
+.fontSpace {
+  font-size: large;
+  font-weight: 600;
+  margin-top: 3px;
+  margin-bottom: 3px;
+}
+
+.buttonSpace {
+  margin-left: 5px;
+}
+
+#finalBudgetDiv {
   font-size: large;
 }

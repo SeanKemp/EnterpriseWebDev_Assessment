@@ -3,20 +3,36 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
+import Task from './task';
+import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
 
 // Page for Quote Creation, editing and combining
 class CreateQuote extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { workers: [], resources: [], quoteName: '', workerName: '', hours: '', hourlyRate: -1, 
-            workersCost: 0, resource: '', resourceCost: '', resourcesCost: 0, finalBudget: 0, editing: false, _id: '', 
-            rates: [], useFudge: true, combine:false, error:'', calculatedBudget: false};
+        this.state = { tasks: [], taskIndex: -1, quoteName: '', finalBudget: 0, editing: false, _id: '', 
+            rates: [], useFudge: true, combine:false, error:'', calculatedBudget: false, newTask: false, taskCombineText: 'SELECT', taskCombine: {}, taskCombineIndex: -1};
         this.handleChange = this.handleChange.bind(this);
-        this.addWorker = this.addWorker.bind(this);
-        this.addResource = this.addResource.bind(this);
-        this.updateWorkersState = this.updateWorkersState.bind(this);
+        this.combineTasks = this.combineTasks.bind(this);
+        this.getDataCallback = this.getDataCallback.bind(this);
+        this.showErrorCallback = this.showErrorCallback.bind(this);
         this.calculateFinalBudget = this.calculateFinalBudget.bind(this);
         this.saveQuote = this.saveQuote.bind(this);
+    }
+
+    getDataCallback = (task, index) => {
+      if (index === -10) this.setState({newTask: false, taskIndex:-1})
+      else if (this.state.taskIndex === -1) this.setState({tasks: [...this.state.tasks, task], taskIndex: -1, newTask:false})
+      else {
+        let tempTasks = this.state.tasks
+        tempTasks[index] = task
+        console.log(tempTasks)
+        this.setState({tasks: tempTasks, taskIndex: -1})
+      }
+    }
+
+    showErrorCallback = (err) => {
+      this.setState({error: err})
     }
 
     render() {
@@ -31,6 +47,7 @@ class CreateQuote extends React.Component {
             <div className="row" hidden={(!this.state.error === '')?"hidden":""}>
                 <p hidden={(this.state.error === '')?'hidden':''} className='error'>Error: {this.state.error}</p>
             </div>
+            {/* If is user and is admin show fudge factor select */}
             {(auth && JSON.parse(auth).user.is_admin)?<div>
               <label class="form-check-label" for="useFudge">ADMIN: Should Fudge Factor be used in quote creation:</label>
               <ButtonGroup className="mb-2"><ToggleButton id="toggle-check" type="checkbox"variant="outline-primary" checked={this.state.useFudge} onChange={(e)=>this.setState({useFudge: e.currentTarget.checked})}>Use Fudge Factor</ToggleButton></ButtonGroup>
@@ -42,132 +59,62 @@ class CreateQuote extends React.Component {
             </div>
               
           </div>
-          <div className="row rowStyle">
-            <h3>Workers</h3>
-            <div className="col">
-              <div className="row row-cols-3">
-                <div className="col colMidStyle colTopStyle">
-                  <label htmlFor="workerName">How would you like to name this worker?</label>
-                </div>
-                <div className="col colMidStyle colTopStyle">
-                  <label htmlFor="hours">How many hours do you think it will take this worker to complete the work?</label>
-                </div>
-                <div className="col colTopStyle">
-                  <label htmlFor="hourlyRate">What is this workers hourly rate?</label>
-                </div>
-                <div className="col colMidStyle colBotStyle">
-                  <input type="text" id="workerName" name="workerName" onChange={this.handleChange('workerName')} value={this.state.workerName}/>
-                </div>
-                <div className="col colMidStyle colBotStyle">
-                  <input type="text" id="hours" name="hours" onChange={this.handleChange('hours')} value={this.state.hours}/>
-                </div>
-                <div className="col colBotStyle">
-                  <select name="hourlyRate" value={this.state.hourlyRate} onChange={this.handleChange('hourlyRate')}>
-                    {this.state.rates.map((rate) => (
-                      <option value={rate.rate_index}>{rate.rate_name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <button className="btn btn-md btn-primary" id="addWorker" type="button" onClick={this.addWorker}>Add worker</button>
-            <br/><br/>
+          {/* If there is no tasks in state or task sent for edit or add new task has been clicked, show Task component, 
+             otherwise show table of tasks and final budget*/}
+          {(this.state.tasks.length === 0 || this.state.taskIndex !== -1 || this.state.newTask)? 
+            <Task quoteCallback={this.getDataCallback} errorCallback={this.showErrorCallback} task={this.state.tasks[this.state.taskIndex]} index={this.state.taskIndex} useFudge={this.state.useFudge} newTask={this.state.newTask} ></Task>: 
             <div className="container pt-4">
-              <div className="table-responsive">
-                <table className="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th className="text-center">Worker Name</th>
-                      <th className="text-center">Work Hours</th>
-                      <th className="text-center">Hourly Rate</th>
+            <div className="table-responsive">
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th className="text-center">Task Name</th>
+                    <th className="text-center">Task Cost (£)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.state.tasks.map((task, index) => (
+                    <tr key={index}>
+                      <td>{task.taskName}</td>
+                      <td>{task.taskCost}</td>
+                      <td><button className="btn btn-md btn-primary" onClick={() => {
+                        // Send task at index of click to be edited in Task component
+                        this.setState({taskIndex: index})
+                      }}>VIEW/EDIT</button></td>
+                      {/* Combine tasks through selection of buttons */}
+                      <td><ToggleButtonGroup type="checkbox" className="mb-2">
+                            <ToggleButton id={'tbg-check-'+index+task.taskName} value={'tbg-check-'+index+task.taskName} variant="outline-primary" checked={(this.state.taskCombineIndex === index)} onChange={this.combineTasks(task, index)}>
+                              {this.state.taskCombineText}</ToggleButton>
+                            </ToggleButtonGroup></td>
+                      <td><button className="btn btn-md btn-primary" onClick={() => {
+                        // Delete task at index of click
+                        this.setState({tasks: this.state.tasks.filter((ele, idx) => 
+                          idx !== index
+                        )});
+                      }}>DELETE</button></td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {this.state.workers.map((worker, index) => (
-                      <tr key={index}>
-                        <td>{worker.workerName}</td>
-                        <td>{worker.hours}</td>
-                        <td>{(this.state.rates.length > 1)?(this.state.rates.filter((rate) => 
-                            JSON.parse(JSON.stringify(rate)).rate_index == worker.hourlyRate
-                          ))[0].rate_name
-                          :''}</td>
-                        <td><button className="btn btn-md btn-primary" onClick={() => {
-                          this.setState({workers: this.state.workers.filter((worker, idx) => 
-                            idx !== index
-                          )});
-                          let newWorkersCost = (parseFloat(this.state.workersCost) - parseFloat(worker.workerCost))
-                          this.setState({workersCost: parseFloat(newWorkersCost.toFixed(2))})
-                        }}>DELETE</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="text-center space">
+              <input className="btn btn-md btn-primary" value="Add New Task" onClick={()=>{
+                // Setting new task state to load Task component
+                this.setState({newTask: true, calculatedBudget: false});
+                }}/>
+            </div>
+            <div className="row rowStyle">
+              <input type="button" className="btn btn-md btn-primary space" value="Calculate Final Budget" onClick={this.calculateFinalBudget}/><br/><br/>
+              <div id="finalBudgetDiv" className="space"  hidden={(this.state.finalBudget===0) ? 'hidden' : ''}>
+                <label id="finalBudget" htmlFor="finalBudget">Final Budget (Sum of Tasks) (£)</label>
+                <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
               </div>
             </div>
-            <label htmlFor="workersCost">Total Workers Cost (£)</label>
-            <input id="workersCost" readOnly value={this.state.workersCost}></input>
-          </div>
-          <div className="row rowStyle">
-            <h3>Non-Human Resources</h3>
-            <div className="col">
-              <div className="row row-cols-2">
-                  <div className="col colMidStyle colTopStyle">
-                  <label htmlFor="resource">What resource do you need?</label>
-                  </div>
-                  <div className="col colTopStyle">
-                  <label htmlFor="resourceCost">What is this resource going to cost? (£)</label>
-                  </div>
-                  <div className="col colMidStyle colBotStyle">
-                  <input type="text" id="resource" name="resource" onChange={this.handleChange('resource')} value={this.state.resource}/>
-                  </div>
-                  <div className="col colBotStyle">
-                  <input type="text" id="resourceCost" name="resourceCost" onChange={this.handleChange('resourceCost')} value={this.state.resourceCost}/>
-                  </div>
-              </div>
+            {(auth && this.state.calculatedBudget)? <div className="row rowStyle">
+            <input type="button" className="btn btn-md btn-primary" value="Save Quote" onClick={this.saveQuote}/></div>
+              : undefined}
             </div>
-            <button className="btn btn-md btn-primary" id="addResource" type="button" onClick={this.addResource}>Add Resource</button>
-            <br/><br/>
-            <div className="container pt-4">
-              <div className="table-responsive">
-                <table className="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th className="text-center">Resource Name</th>
-                      <th className="text-center">Cost</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {this.state.resources.map((res, index) => (
-                      <tr key={index}>
-                        <td>{res.resource}</td>
-                        <td>{res.resourceCost}</td>
-                        <td><button className="btn btn-md btn-primary" onClick={() => {
-                          this.setState({resources: this.state.resources.filter((ele, idx) => 
-                            idx !== index
-                          )});
-                          let newResCost = (parseFloat(this.state.resourcesCost) - (parseFloat(res.resourceCost)))
-                          this.setState({resourcesCost: parseFloat(newResCost.toFixed(2))}) 
-                        }}>DELETE</button></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <label htmlFor="resourcesCost">Total Resources Cost (£)</label>
-            <input id="resourcesCost" readOnly value={this.state.resourcesCost}></input>
-          </div>
-          <div className="row rowStyle">
-            <input type="button" className="btn btn-md btn-primary space" value="Calculate Final Budget" onClick={this.calculateFinalBudget}/><br/><br/>
-
-            <div id="finalBudgetDiv" className="space"  hidden={(this.state.finalBudget===0) ? 'hidden' : ''}>
-              <label id="finalBudget" htmlFor="finalBudget">Final Budget (Workers Cost + Resources Cost) (£)</label>
-              <input type="text" readOnly name="finalBudget" value={this.state.finalBudget}/>
-            </div>
-          </div>
-          {(auth && this.state.calculatedBudget)? <div className="row rowStyle">
-          <input id="button" className="btn btn-md btn-primary" value="Save Quote" onClick={this.saveQuote}/></div>
-            : undefined}
+          }
           </div><br/>
         </div>
       );
@@ -175,89 +122,51 @@ class CreateQuote extends React.Component {
 
     // Handle textbox/input changes to save to state, replacing unneeded characters using regular expressions
     handleChange = name => event => {
-        if (name === 'resourceCost' || name === 'hours') this.setState({[name]: event.target.value.replace(/[^\d.]/, "")})
-        else this.setState({[name]: event.target.value.replace(/[^\w\s]/, "")})
+      this.setState({[name]: event.target.value.replace(/[^\w\s]/, "")})
     }
 
-    // Add worker button method, posting to server to calculate worker cost using fudge factor and rate and updating workers and workers cost
-    addWorker(e) {
-      e.preventDefault();
-      if(!this.state.workerName.length || !this.state.hours.length || !this.state.hourlyRate.length ||
-          this.state.hourlyRate == -1){
-            this.setState({error: 'Please fill in all worker fields before adding the worker'})
-        return;
-      }
-      this.setState({error: ''})
-      console.log(this.state.hourlyRate)
-      var requestURI = "http://localhost:8000/api/quote/addWorker"
-      axios.post(requestURI, {hours:parseFloat(parseFloat(this.state.hours).toFixed(2)), hourlyRate:this.state.hourlyRate, useFudge: this.state.useFudge})
-      .then(response => {
-          console.log("Getting Worker Cost")
-          let workerCost = JSON.stringify(response.data)
-          let workersTotal = (this.state.workersCost + parseFloat(workerCost));
-          console.log(workersTotal)
-          this.setState({workersCost: workersTotal})
-          this.updateWorkersState(parseFloat(workerCost))
-        })
-      .catch(err => {
-          console.log(err.response.data.error)
-          this.setState({error: err.response.data.error})
-      });
-      
-    }
-
-    // Update worker state variables after adding worker
-    updateWorkersState(cost) {
-      const newItem = {
-        workerName: this.state.workerName,
-        hours: parseFloat(parseFloat(this.state.hours).toFixed(2)),
-        hourlyRate: this.state.hourlyRate,
-        id: Date.now(),
-        workerCost: cost
-      };
-      this.setState({
-        workers: [...this.state.workers, newItem],
-        workerName: '',
-        hours: '',
-        hourlyRate: -1,
-        calculatedBudget: false
-      });
-    }
-
-    // Add Resource button handler, adding resource to resource list and updating total resources cost
-    addResource(e) {
-      e.preventDefault();
-      if(!this.state.resource.length || !this.state.resourceCost.length){
-        this.setState({error: 'Please fill in all resource fields before adding the resource'})
-        return;
-      }
-      this.setState({error: ''})
-      const newItem = {
-        resource: this.state.resource,
-        resourceCost: parseFloat(parseFloat(this.state.resourceCost).toFixed(2)),
-        id: Date.now()
-      };
-      let resourcesTotal = (parseFloat(this.state.resourcesCost) + (parseFloat((parseFloat(this.state.resourceCost).toFixed(2))) || 0));
-      console.log(resourcesTotal)
-      this.setState({resourcesCost: parseFloat(resourcesTotal.toFixed(2))})
-      this.state.resources.push(newItem)
-      this.setState({
-        resource: '',
-        resourceCost: 0,
-        calculatedBudget: false
-      });
+    combineTasks = (task, index) => event => {
+        // If the selected button has not already been selected
+        if(event.currentTarget.checked) {
+            console.log("Checked")
+            // If there are no other selected tasks, add task to state and change button text
+            if (Object.keys(this.state.taskCombine).length === 0) {
+                console.log("COMBINES")
+                this.setState({taskCombine: task, taskCombineIndex: index})
+                this.setState({taskCombineText:'COMBINE'})
+            } // If another task is already selected, add both tasks together
+            else {
+              console.log(this.state.taskCombine)
+              let tempTask = this.state.taskCombine
+              tempTask.taskName = tempTask.taskName + ' ' + task.taskName
+              tempTask.workers = tempTask.workers.concat(task.workers)
+              tempTask.workersCost = parseFloat((parseFloat(tempTask.workersCost) + parseFloat(task.workersCost)).toFixed(2))
+              tempTask.resources = tempTask.resources.concat(task.resources)
+              tempTask.resourcesCost = parseFloat((parseFloat(tempTask.resourcesCost) + parseFloat(task.resourcesCost)).toFixed(2))
+              tempTask.taskCost = parseFloat((tempTask.taskCost + task.taskCost).toFixed(2))
+              let tempTasks = this.state.tasks
+              tempTasks[this.state.taskCombineIndex] = tempTask
+              tempTasks.splice(index, 1)
+              this.setState({tasks: tempTasks, taskCombineText:'SELECT', taskCombine: {}, taskCombineIndex:-1})
+            }
+        } // If the selected button has already been selected, unselect it and reset combines state
+        else {this.setState({taskCombine: {}, taskCombineText:'SELECT'})}
+        
     }
 
     // Calculate Final Budget button handler for calculating and setting the final budget
     calculateFinalBudget(e) {
       e.preventDefault();
-      if(this.state.workers.length === 0){
-        this.setState({error: 'Please add at least 1 worker to the quote'})
+      console.log(this.state.tasks)
+      if(this.state.tasks.length === 0){
+        this.setState({error: 'Please add at least 1 task to the quote'})
         return;
       }
-      console.log(this.state.workersCost)
-      console.log(this.state.resourcesCost)
-      let finalBudget = (parseFloat(this.state.workersCost) + parseFloat(this.state.resourcesCost));
+      let finalBudget = 0;
+      this.state.tasks.forEach((currVal, idx) =>{
+        finalBudget += parseFloat((parseFloat(currVal.taskCost)).toFixed(2));
+      })
+      //let finalBudget = (parseFloat(this.state.workersCost) + parseFloat(this.state.resourcesCost));
       console.log(finalBudget)
       this.setState({finalBudget: finalBudget, calculatedBudget: true})
       return finalBudget;
@@ -271,18 +180,15 @@ class CreateQuote extends React.Component {
         this.setState({error: 'Not authorised to save quote'})
         return;
       }
-      if(this.state.workers.length === 0){
-        this.setState({error: 'Please add at least 1 worker to the quote'})
+      if(this.state.tasks.length === 0){
+        this.setState({error: 'Please add at least 1 task to the quote'})
         return;
       }
       let data = {
         user_id: JSON.parse(auth).user._id,
         username: JSON.parse(auth).user.username,
         quote_name: this.state.quoteName,
-        workers: this.state.workers,
-        workers_cost: this.state.workersCost,
-        resources: this.state.resources,
-        resources_cost: this.state.resourcesCost,
+        tasks: this.state.tasks,
         final_budget: this.state.finalBudget
       };
       console.log(data)
@@ -317,20 +223,7 @@ class CreateQuote extends React.Component {
 
     // On initial page load, get and set rates from database and populate quote if editing or combining quotes
     componentDidMount() {
-      var requestURI = "http://localhost:8000/api/rates/quote"
-      axios.get(requestURI)
-      .then(response => {
-          console.log("Getting Rates Data")
-          let ratesData = response.data
-          ratesData.sort((a, b) => parseInt(a.rate_index) - parseInt(b.rate_index));
-          if (ratesData.length == 0) ratesData = [{rate_index: -1, rate_name: 'No Rates Setup'}]
-          else ratesData = [{rate_index: -1, rate_name: '-SELECT-'}, ...ratesData]
-          this.setState({rates: ratesData})
-      })
-      .catch(err => {
-        console.log(err.response.data.error)
-        this.setState({error: err.response.data.error})
-      });
+
       // If logged in and there is a quote sent for editing then populate quote states
       if (sessionStorage.getItem('auth') && sessionStorage.getItem('quote')) {
         let quote = JSON.parse(sessionStorage.getItem('quote'))
@@ -339,10 +232,7 @@ class CreateQuote extends React.Component {
           _id: quote._id,
           editing: true,
           quoteName: quote.quote_name,
-          workers: quote.workers,
-          workersCost: quote.workers_cost,
-          resources: quote.resources,
-          resourcesCost: quote.resources_cost,
+          tasks: quote.tasks,
           finalBudget: quote.final_budget          
         });
         sessionStorage.removeItem('quote')
@@ -355,18 +245,15 @@ class CreateQuote extends React.Component {
           _id: '',
           combine: true,
           quoteName: quote1.quote_name + ' ' + quote2.quote_name,
-          workers: quote1.workers.concat(quote2.workers),
-          workersCost: parseFloat((quote1.workers_cost + quote2.workers_cost).toFixed(2)),
-          resources: quote1.resources.concat(quote2.resources),
-          resourcesCost: parseFloat((quote1.resources_cost + quote2.resources_cost).toFixed(2)),
+          tasks: quote1.tasks.concat(quote2.tasks),
           finalBudget: quote1.final_budget + quote2.final_budget          
         });
         sessionStorage.removeItem('quoteC1')
         sessionStorage.removeItem('quoteC2')
       }
     }
-
 }
+
 
 // Allows class CreateQuote to use navigation
 export function CreateQuoteNavigation(props) {
